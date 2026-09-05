@@ -1,0 +1,61 @@
+:root {
+  --primary-background: #0B0C10;
+  --secondary-surface: #1F2833;
+  --accent-color-1: #00FFFF;
+  --accent-color-2: #FFD700;
+  --text-primary: #E0E6ED;
+  --text-secondary: #C5C6C7;
+  --text-muted: #8B949E;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Roboto', sans-serif;
+  background-color: var(--primary-background);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent-color-1);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--accent-color-2);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-surface);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color-1);
+}

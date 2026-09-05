@@ -1,0 +1,25 @@
+[
+  {
+    "id": "1",
+    "name": "Team Member 1",
+    "role": "Lead Developer",
+    "bio": "Experienced developer with expertise in 3D modeling and game development. Passionate about creating immersive digital experiences.",
+    "photoUrl": "https://placehold.co/200x200/1F2833/00FFFF?text=TM1",
+    "socialLinks": {
+      "youtube": "https://youtube.com/@example",
+      "twitter": "https://twitter.com/example",
+      "linkedin": "https://linkedin.com/in/example"
+    }
+  },
+  {
+    "id": "2",
+    "name": "Team Member 2",
+    "role": "3D Artist",
+    "bio": "Talented 3D artist specializing in character modeling and environment design. Bringing creative visions to life.",
+    "photoUrl": "https://placehold.co/200x200/1F2833/00FFFF?text=TM2",
+    "socialLinks": {
+      "youtube": "https://youtube.com/@example2",
+      "linkedin": "https://linkedin.com/in/example2"
+    }
+  }
+]

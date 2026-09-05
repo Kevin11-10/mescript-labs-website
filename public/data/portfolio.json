@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1",
+    "title": "Example 3D Model",
+    "description": "A high-quality 3D model showcasing our modeling capabilities. This asset is optimized for real-time rendering.",
+    "category": "props-and-low-poly",
+    "url": "https://example.com/video1",
+    "thumbnailUrl": "https://placehold.co/600x400/1F2833/00FFFF?text=3D+Model",
+    "date": "2024-01-15",
+    "client": "Example Client"
+  },
+  {
+    "id": "2",
+    "title": "Environment Scene",
+    "description": "A detailed environment scene demonstrating our ability to create immersive worlds.",
+    "category": "scenes-and-environments",
+    "url": "https://example.com/image1",
+    "thumbnailUrl": "https://placehold.co/600x400/1F2833/00FFFF?text=Environment",
+    "date": "2024-02-20"
+  },
+  {
+    "id": "3",
+    "title": "Game Demo",
+    "description": "A playable game demo showcasing our game development expertise and gameplay mechanics.",
+    "category": "games-and-apps",
+    "url": "https://youtube.com/watch?v=example",
+    "thumbnailUrl": "https://placehold.co/600x400/1F2833/00FFFF?text=Game+Demo",
+    "date": "2024-03-10"
+  }
+]
