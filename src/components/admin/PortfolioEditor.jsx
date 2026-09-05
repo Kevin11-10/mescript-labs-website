@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAppContext } from '../contexts/AppContext'
+import { useAppContext } from '../../contexts/AppContext'
 
 const PortfolioEditor = () => {
   const { portfolioData, updatePortfolioData } = useAppContext()
