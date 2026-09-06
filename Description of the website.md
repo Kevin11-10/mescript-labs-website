@@ -1,12 +1,15 @@
 # Mescript Labs Website Description
 
 ## Technical Stack
-- **Framework**: React
-- **Routing**: React Router
+- **Framework**: Next.js (App Router)
+- **Routing**: Next.js App Router (file-based routing)
 - **State Management**: Context API (best free option for Netlify deployment)
 - **Deployment**: Netlify
 - **Database**: Supabase (for transaction tracking and sponsor data)
 - **Payment Processing**: Creem (handles all payment processing and asset hosting)
+- **3D Rendering**: React Three Fiber / Three.js for 3D model embedding
+- **Video Embedding**: YouTube embed support (including unlisted videos)
+- **Image Hosting**: ImgBB integration for image embedding
 
 ## Design System
 **Theme**: Dark mode, cyber/tech-focused, high contrast, sleek, and minimalist
@@ -236,23 +239,32 @@ Allow community supporters to donate and companies to partner/sponsor the studio
 
 ### Implementation Priorities
 1. **Phase 1 - Core Infrastructure**:
-   - Set up React project with Vite
-   - Configure routing with React Router
+   - Set up Next.js project with App Router
+   - Configure file-based routing
    - Set up Supabase database and authentication
    - Create basic layout and navigation
    - Implement WordPress-style admin authentication system
+   - Install and configure React Three Fiber for 3D rendering
+   - Set up YouTube embed component
+   - Configure ImgBB image integration
 
 2. **Phase 2 - Main Pages**:
    - Build Home page with hero, services, about sections
    - Create separate About page
    - Build Portfolio page with JSON data structure
    - Implement contact form with email delivery
+   - Add 3D model viewer component
+   - Add YouTube video embed component
+   - Add ImgBB image gallery component
 
 3. **Phase 3 - Admin Panel**:
    - Build admin dashboard
    - Create JSON editing interfaces
    - Implement user management (Owner/Admin/Editor roles)
    - Add transaction monitoring
+   - Add 3D model upload/management
+   - Add YouTube video URL management
+   - Add ImgBB image URL management
 
 4. **Phase 4 - Hidden Pages**:
    - Build Sponsorships page (hidden initially)
@@ -481,3 +493,56 @@ Allow community supporters to donate and companies to partner/sponsor the studio
 - Secondary: "Get in Touch" (links to Contact)
 
 **Note**: Hero headline and CTA to be finalized based on studio branding preferences
+
+---
+
+## Media Embedding Capabilities
+
+### 3D Model Embedding
+- **Technology**: React Three Fiber / Three.js
+- **Supported Formats**: .glb, .gltf, .obj (with appropriate loaders)
+- **Features**:
+  - Interactive 3D model viewer
+  - Orbit controls (rotate, zoom, pan)
+  - Auto-rotate option
+  - Lighting controls
+  - Model optimization for web
+- **Use Cases**:
+  - Portfolio item previews
+  - Hero section 3D elements
+  - Product showcases
+  - Interactive demos
+
+### YouTube Video Embedding
+- **Support**: All YouTube videos including unlisted
+- **Features**:
+  - Responsive video player
+  - Custom player controls
+  - Lazy loading for performance
+  - Autoplay options
+  - Playlist support
+- **Use Cases**:
+  - Portfolio video showcases
+  - Game trailers
+  - Tutorial content
+  - Behind-the-scenes footage
+
+### ImgBB Image Embedding
+- **Integration**: Direct ImgBB URL support
+- **Features**:
+  - Responsive image gallery
+  - Lightbox/modal for full-size viewing
+  - Image optimization
+  - Lazy loading
+  - Alt text support
+- **Use Cases**:
+  - Portfolio image galleries
+  - Product screenshots
+  - Team photos
+  - Project thumbnails
+
+### Media Management
+- All media URLs managed via JSON files
+- Admin panel for adding/editing media URLs
+- Support for multiple media types per portfolio item
+- Thumbnail generation for videos/3D models
