@@ -36,18 +36,18 @@ const Portfolio = () => {
   return (
     <div className="min-h-screen py-20 px-4">
       <div className="container mx-auto">
-        <h1 className="text-4xl md:text-5xl font-bold mb-8 text-[#00FFFF]">Our Portfolio</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-8 gradient-text animate-fade-in">Our Portfolio</h1>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-3 mb-8">
+        <div className="flex flex-wrap gap-3 mb-8 justify-center">
           {availableCategories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 selectedCategory === category
-                  ? 'bg-[#00FFFF] text-[#0B0C10]'
-                  : 'bg-[#1F2833] text-[#C5C6C7] hover:bg-[#0B0C10] hover:text-[#00FFFF]'
+                  ? 'btn-primary'
+                  : 'btn-secondary'
               }`}
             >
               {categoryLabels[category]}
@@ -61,22 +61,23 @@ const Portfolio = () => {
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-[#1F2833] rounded-lg overflow-hidden border border-[#0B0C10] hover:border-[#00FFFF] transition-colors cursor-pointer"
+                className="card overflow-hidden cursor-pointer group"
                 onClick={() => setSelectedItem(item)}
               >
                 {item.thumbnailUrl && (
-                  <div className="aspect-video bg-[#0B0C10] overflow-hidden">
+                  <div className="aspect-video bg-[#0B0C10] overflow-hidden relative">
                     <img
                       src={item.thumbnailUrl}
                       alt={item.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       loading="lazy"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C10]/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </div>
                 )}
                 <div className="p-4">
-                  <h3 className="text-lg font-bold mb-2 text-[#E0E6ED]">{item.title}</h3>
-                  <p className="text-sm text-[#C5C6C7] mb-2 line-clamp-2">{item.description}</p>
+                  <h3 className="text-lg font-bold mb-2 text-[#E0E6ED] group-hover:text-[#00FFFF] transition-colors">{item.title}</h3>
+                  <p className="text-sm text-[#C5C6C7] mb-3 line-clamp-2">{item.description}</p>
                   <div className="flex items-center justify-between text-xs text-[#8B949E]">
                     <span className="text-[#00FFFF]">{categoryLabels[item.category]}</span>
                     {item.date && <span>{item.date}</span>}
@@ -87,33 +88,37 @@ const Portfolio = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-[#C5C6C7] text-lg">No portfolio items found in this category.</p>
+            <div className="card p-8 inline-block">
+              <p className="text-[#C5C6C7] text-lg">No portfolio items found in this category.</p>
+            </div>
           </div>
         )}
 
         {/* Modal */}
         {selectedItem && (
           <div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 animate-fade-in"
             onClick={() => setSelectedItem(null)}
           >
             <div
-              className="bg-[#1F2833] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              className="card max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-2xl font-bold text-[#E0E6ED]">{selectedItem.title}</h2>
+                  <h2 className="text-2xl font-bold gradient-text">{selectedItem.title}</h2>
                   <button
                     onClick={() => setSelectedItem(null)}
-                    className="text-[#C5C6C7] hover:text-[#00FFFF] text-2xl"
+                    className="w-10 h-10 rounded-full bg-[#1F2833] flex items-center justify-center text-[#C5C6C7] hover:text-[#00FFFF] hover:bg-[#00FFFF]/10 transition-colors"
                   >
-                    &times;
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
 
                 {selectedItem.url && (
-                  <div className="mb-6">
+                  <div className="mb-6 rounded-lg overflow-hidden">
                     {selectedItem.url.includes('youtube') || selectedItem.url.includes('youtu.be') ? (
                       <div className="aspect-video">
                         <iframe
@@ -135,10 +140,10 @@ const Portfolio = () => {
 
                 <div className="space-y-4">
                   <p className="text-[#C5C6C7]">{selectedItem.description}</p>
-                  <div className="flex flex-wrap gap-4 text-sm text-[#8B949E]">
-                    <span className="text-[#00FFFF]">{categoryLabels[selectedItem.category]}</span>
-                    {selectedItem.date && <span>Date: {selectedItem.date}</span>}
-                    {selectedItem.client && <span>Client: {selectedItem.client}</span>}
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <span className="px-3 py-1 rounded-full bg-[#00FFFF]/10 text-[#00FFFF]">{categoryLabels[selectedItem.category]}</span>
+                    {selectedItem.date && <span className="px-3 py-1 rounded-full bg-[#1F2833] text-[#C5C6C7]">Date: {selectedItem.date}</span>}
+                    {selectedItem.client && <span className="px-3 py-1 rounded-full bg-[#1F2833] text-[#C5C6C7]">Client: {selectedItem.client}</span>}
                   </div>
                 </div>
               </div>

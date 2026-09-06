@@ -13,9 +13,9 @@ const Contact = () => {
   return (
     <div className="min-h-screen py-20 px-4">
       <div className="container mx-auto max-w-2xl">
-        <h1 className="text-4xl md:text-5xl font-bold mb-8 text-[#00FFFF]">Contact Us</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-8 gradient-text animate-fade-in">Contact Us</h1>
 
-        <div className="bg-[#1F2833] p-8 rounded-lg border border-[#0B0C10]">
+        <div className="card p-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-2 text-[#E0E6ED]">
@@ -26,7 +26,7 @@ const Contact = () => {
                 id="name"
                 name="name"
                 required
-                className="w-full px-4 py-3 bg-[#0B0C10] border border-[#1F2833] rounded-lg text-[#E0E6ED] focus:border-[#00FFFF] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 bg-[#0B0C10] border border-[#1F2833] rounded-lg text-[#E0E6ED] focus:border-[#00FFFF] focus:ring-2 focus:ring-[#00FFFF]/20 focus:outline-none transition-all"
                 placeholder="Your name"
               />
             </div>
@@ -40,7 +40,7 @@ const Contact = () => {
                 id="email"
                 name="email"
                 required
-                className="w-full px-4 py-3 bg-[#0B0C10] border border-[#1F2833] rounded-lg text-[#E0E6ED] focus:border-[#00FFFF] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 bg-[#0B0C10] border border-[#1F2833] rounded-lg text-[#E0E6ED] focus:border-[#00FFFF] focus:ring-2 focus:ring-[#00FFFF]/20 focus:outline-none transition-all"
                 placeholder="your@email.com"
               />
             </div>
@@ -53,7 +53,7 @@ const Contact = () => {
                 id="subject"
                 name="subject"
                 required
-                className="w-full px-4 py-3 bg-[#0B0C10] border border-[#1F2833] rounded-lg text-[#E0E6ED] focus:border-[#00FFFF] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 bg-[#0B0C10] border border-[#1F2833] rounded-lg text-[#E0E6ED] focus:border-[#00FFFF] focus:ring-2 focus:ring-[#00FFFF]/20 focus:outline-none transition-all"
               >
                 <option value="">Select a subject</option>
                 <option value="commission">Commission</option>
@@ -72,14 +72,14 @@ const Contact = () => {
                 name="message"
                 rows="6"
                 required
-                className="w-full px-4 py-3 bg-[#0B0C10] border border-[#1F2833] rounded-lg text-[#E0E6ED] focus:border-[#00FFFF] focus:outline-none transition-colors resize-none"
+                className="w-full px-4 py-3 bg-[#0B0C10] border border-[#1F2833] rounded-lg text-[#E0E6ED] focus:border-[#00FFFF] focus:ring-2 focus:ring-[#00FFFF]/20 focus:outline-none transition-all resize-none"
                 placeholder="Your message..."
               ></textarea>
             </div>
 
             <button
               type="submit"
-              className="w-full px-8 py-3 bg-[#00FFFF] text-[#0B0C10] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors"
+              className="w-full btn-primary"
             >
               Send Message
             </button>
@@ -91,11 +91,13 @@ const Contact = () => {
               href="https://www.youtube.com/@MescriptLabs"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center text-[#00FFFF] hover:text-[#FFD700] transition-colors"
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-[#1F2833] text-[#00FFFF] hover:bg-[#00FFFF]/10 transition-colors group"
             >
-              <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-              </svg>
+              <div className="w-10 h-10 rounded-full bg-[#00FFFF]/10 flex items-center justify-center mr-3 group-hover:bg-[#00FFFF]/20 transition-colors">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+              </div>
               @MescriptLabs
             </a>
           </div>
