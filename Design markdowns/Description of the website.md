@@ -776,3 +776,97 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 
 ### Recommended Starting Point
 Begin with **Phase 1 (Supabase schema)** since you already have the account. This provides the database foundation before any code development.
+
+---
+
+## 17. Detailed Step-by-Step Implementation Plan
+
+### Phase 1: Supabase Setup (3 tasks)
+1. Enable UUID extension in Supabase SQL Editor
+2. Run complete SQL schema initialization (6 tables: webhook_events, download_tokens, transactions, sponsorship_goals, users, ai_audit_logs)
+3. Set up Supabase cron job using pg_cron extension or external service (cron-job.org) to ping database every 10 minutes
+
+### Phase 2: Creem Setup (4 tasks)
+4. Sign up for Creem account and get sandbox API keys (no ID verification needed for test mode)
+5. Get CREEM_API_KEY for checkout creation
+6. Get CREEM_WEBHOOK_SECRET for HMAC signature verification
+7. Configure webhook endpoint URL in Creem dashboard (after backend deployment)
+
+### Phase 3: GitHub Setup (3 tasks)
+8. Create MescriptLabs/private-assets repository (or multiple repos for different asset categories)
+9. Generate fine-grained PAT with read access to private releases
+10. Upload first 3D model as GitHub release with asset ID
+
+### Phase 4: Backend Foundation (11 tasks)
+11. Install wrangler CLI globally (`npm install -g wrangler`)
+12. Authenticate with Cloudflare (`wrangler login`)
+13. Create apps/backend directory structure
+14. Initialize Cloudflare Workers project (`wrangler init`)
+15. Create wrangler.toml configuration with secrets and vars
+16. Set up TypeScript configuration (tsconfig.json)
+17. Create src/index.ts with itty-router setup
+18. Implement CORS headers and OPTIONS handler
+19. Implement GET /health endpoint
+20. Set up environment variables (`wrangler secret put`)
+21. Test locally with `wrangler dev`
+
+### Phase 5: Backend Core (14 tasks)
+22. Create src/handlers/checkout.ts
+23. Implement calculateGrossPrice function (Gross = (Target + 0.45) / (1 - 0.048))
+24. Implement POST /api/v1/checkout/create endpoint
+25. Integrate Creem API for checkout session creation
+26. Create src/handlers/webhooks.ts
+27. Implement verifyWebhookSignature function (HMAC SHA-256)
+28. Implement POST /webhooks/creem endpoint with idempotency check
+29. Implement 24-hour token generation using crypto.randomUUID()
+30. Create src/handlers/assets.ts
+31. Implement GET /api/v1/assets/download with token verification
+32. Implement expiration check (24-hour limit)
+33. Implement download count limit (max 5 downloads)
+34. Implement GitHub asset streaming using fetch API
+35. Set up Supabase client integration
+
+### Phase 6: Backend Testing (3 tasks)
+36. Create src/handlers/mock.ts
+37. Implement POST /mock/simulate-buy endpoint
+38. Test mock endpoint locally without real payments
+
+### Phase 7: Frontend Foundation (7 tasks)
+39. Create apps/web directory structure
+40. Initialize Next.js App Router project (`npx create-next-app@latest`)
+41. Install Tailwind CSS and configure dark theme (#0B0C10)
+42. Configure next.config.ts with output: 'export'
+43. Set up environment variables (.env.local)
+44. Create src/lib/api.ts for fetch wrappers
+45. Create src/lib/supabase.ts for browser-safe Supabase client
+
+### Phase 8: Frontend Components (4 tasks)
+46. Create src/components/ui/ directory for base components
+47. Build SketchfabViewer.tsx with iframe embed
+48. Build CheckoutModal.tsx with tier/format selection
+49. Build YouTubeEmbed.tsx with lazy loading
+
+### Phase 9: Frontend Pages (7 tasks)
+50. Create src/app/(public)/page.tsx (Home)
+51. Create src/app/(public)/about/page.tsx
+52. Create src/app/(public)/portfolio/page.tsx with gallery
+53. Create src/app/(public)/contact/page.tsx with form
+54. Create src/app/marketplace/page.tsx with grid layout
+55. Create src/app/sponsorships/page.tsx with goals
+56. Create src/app/admin/page.tsx (protected)
+
+### Phase 10: Deployment (6 tasks)
+57. Deploy backend to Cloudflare Workers (`wrangler deploy`)
+58. Configure webhook URL in Creem dashboard with Workers URL
+59. Connect GitHub repo to Cloudflare Pages
+60. Configure Cloudflare Pages build settings (Next.js)
+61. Deploy frontend to Cloudflare Pages
+62. Configure custom domain (if available)
+
+### Phase 11: Testing & Verification (6 tasks)
+63. Test health endpoint on deployed Workers
+64. Test mock endpoint for checkout flow
+65. End-to-end payment flow test with Creem sandbox
+66. Asset download verification with real token
+67. Webhook retry testing (simulate duplicate webhooks)
+68. Security audit (CORS, signature verification, token expiration)
