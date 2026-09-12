@@ -1,7 +1,7 @@
 # Mescript Labs Website - Technical Specification
 
 ## Overview
-Monorepo architecture with Next.js frontend and FastAPI backend, deployed on Render. Supports 3D model marketplace via Sketchfab, Creem payments, and GitHub asset delivery.
+Monorepo architecture with Next.js frontend and Cloudflare Workers backend, deployed on Cloudflare. Supports 3D model marketplace via Sketchfab, Creem payments, and GitHub asset delivery.
 
 ---
 
@@ -35,25 +35,26 @@ mescript-labs-monorepo/
 │   │   ├── next.config.ts
 │   │   └── package.json
 │   │
-│   └── backend/                     # FastAPI Backend
-│       ├── app/
-│       │   ├── main.py              # App entry point
-│       │   ├── config.py            # Config & env vars
-│       │   ├── routers/
-│       │   │   ├── health.py        # Health check
-│       │   │   ├── checkout.py      # Payment logic
-│       │   │   ├── webhooks.py      # Webhook handlers
-│       │   │   ├── assets.py        # Asset streaming
-│       │   │   └── admin_ai.py      # AI integration
+│   └── backend/                     # Cloudflare Workers Backend
+│       ├── src/
+│       │   ├── index.ts             # Worker entry point
+│       │   ├── config.ts            # Environment validation & secrets loader
+│       │   ├── handlers/
+│       │   │   ├── health.ts        # Health check endpoint
+│       │   │   ├── checkout.ts      # Creem checkout generation
+│       │   │   ├── webhooks.ts      # Webhook signature validation
+│       │   │   ├── assets.ts        # GitHub asset streaming
+│       │   │   └── admin_ai.ts      # AI integration
 │       │   ├── services/
-│       │   │   ├── github.py
-│       │   │   ├── creem.py
-│       │   │   ├── sketchfab.py
-│       │   │   └── supabase.py
-│       │   └── models/
-│       │       └── schemas.py
-│       ├── requirements.txt
-│       └── render.yaml
+│       │   │   ├── github.ts
+│       │   │   ├── creem.ts
+│       │   │   ├── sketchfab.ts
+│       │   │   └── supabase.ts
+│       │   └── types/
+│       │       └── index.ts         # TypeScript types
+│       ├── wrangler.toml            # Cloudflare Workers configuration
+│       ├── package.json
+│       └── tsconfig.json
 │
 └── config/
     └── agent_instructions.md
@@ -66,14 +67,13 @@ mescript-labs-monorepo/
 ### Health Check
 **GET /health**
 
-Prevents Render free-tier spin-down.
+Returns worker health status.
 
 Response:
 ```json
 {
   "status": "healthy",
-  "timestamp": "2026-09-12T11:10:34Z",
-  "uptime_seconds": 142850
+  "timestamp": "2026-09-12T11:10:34Z"
 }
 ```
 
@@ -233,188 +233,198 @@ CREATE TABLE ai_audit_logs (
 
 ---
 
-## 5. Backend Implementation Details
+## 5. Backend Implementation Details (Cloudflare Workers)
 
-### Main Application Structure
-```python
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-import hmac
-import hashlib
-import os
-import httpx
-from pydantic import BaseModel, EmailStr
+### Main Worker Structure
+```typescript
+import { Router } from 'itty-router';
 
-app = FastAPI(title="Mescript Labs Backend", version="1.0.0")
+const router = Router();
 
-# CORS Configuration
-origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://mescriptlabs.com").split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS requests for CORS
+router.options('*', () => new Response(null, { headers: corsHeaders }));
 ```
 
 ### Pricing Calculation
-```python
-def calculate_gross_price(target_net: float) -> float:
-    """Calculates gross price required to cover Creem transaction fees."""
-    gross = (target_net + 0.45) / (1.0 - 0.048)
-    return round(gross, 2)
+```typescript
+function calculateGrossPrice(targetNet: number): number {
+  const gross = (targetNet + 0.45) / (1.0 - 0.048);
+  return Math.round(gross * 100) / 100;
+}
 ```
 
 ### Webhook Signature Verification
-```python
-def verify_webhook_signature(signature: str, body: bytes, secret: str) -> bool:
-    computed_sig = hmac.new(
-        secret.encode("utf-8"),
-        body,
-        hashlib.sha256
-    ).hexdigest()
-    return hmac.compare_digest(computed_sig, signature)
+```typescript
+import { crypto } from 'node:crypto';
+
+async function verifyWebhookSignature(signature: string, body: string, secret: string): Promise<boolean> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const computed = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    new TextEncoder().encode(body)
+  );
+  
+  const computedSig = Array.from(new Uint8Array(computed))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  
+  return computedSig === signature;
+}
 ```
 
 ### Webhook Handler with Idempotency
-```python
-import secrets
-from datetime import datetime, timedelta, timezone
+```typescript
+router.post('/webhooks/creem', async (request: Request) => {
+  const signature = request.headers.get('x-creem-signature');
+  const body = await request.text();
+  
+  if (!signature || !(await verifyWebhookSignature(signature, body, CREEM_WEBHOOK_SECRET))) {
+    return new Response('Invalid signature', { status: 401 });
+  }
 
-@router.post("/webhooks/creem")
-async def handle_creem_webhook(request: Request):
-    # 1. Validate HMAC Signature
-    signature = request.headers.get("x-creem-signature")
-    body = await request.body()
-    
-    computed_sig = hmac.new(
-        CREEM_WEBHOOK_SECRET.encode("utf-8"),
-        body,
-        hashlib.sha256
-    ).hexdigest()
-    
-    if not signature or not hmac.compare_digest(computed_sig, signature):
-        raise HTTPException(status_code=401, detail="Invalid signature")
+  const payload = JSON.parse(body);
+  const eventId = payload.data?.transaction_id;
+  const eventType = payload.event;
 
-    payload = await request.json()
-    event_id = payload.get("data", {}).get("transaction_id")
-    event_type = payload.get("event")
+  // Idempotency check
+  const existingEvent = await supabase
+    .from('webhook_events')
+    .select('*')
+    .eq('event_id', eventId)
+    .single();
+  
+  if (existingEvent.data) {
+    return Response.json({ status: 'already_processed' });
+  }
 
-    # 2. Idempotency Check: Don't process duplicate webhooks
-    existing_event = supabase.table("webhook_events").select("*").eq("event_id", event_id).execute()
-    if existing_event.data:
-        return {"status": "already_processed"}
+  // Log webhook event
+  await supabase.from('webhook_events').insert({
+    event_id: eventId,
+    event_type: eventType,
+    payload: payload,
+    status: 'processing'
+  });
 
-    # 3. Log Webhook Event
-    supabase.table("webhook_events").insert({
-        "event_id": event_id,
-        "event_type": event_type,
-        "payload": payload,
-        "status": "processing"
-    }).execute()
+  // Process payment and issue token
+  if (eventType === 'checkout.paid') {
+    const metadata = payload.data.metadata || {};
+    const buyerEmail = payload.data.customer.email;
+    const githubAssetId = metadata.github_asset_id || 'default_asset_id';
 
-    # 4. Process Payment & Issue 24-Hour Download Token
-    if event_type == "checkout.paid":
-        metadata = payload["data"].get("metadata", {})
-        buyer_email = payload["data"]["customer"]["email"]
-        github_asset_id = metadata.get("github_asset_id", "default_asset_id")
+    // Generate 24-hour token
+    const secureToken = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-        # Generate unique 24-hour token
-        secure_token = secrets.token_urlsafe(32)
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+    await supabase.from('download_tokens').insert({
+      token: secureToken,
+      buyer_email: buyerEmail,
+      github_asset_id: githubAssetId,
+      expires_at: expiresAt,
+      max_downloads: 5
+    });
 
-        supabase.table("download_tokens").insert({
-            "token": secure_token,
-            "buyer_email": buyer_email,
-            "github_asset_id": github_asset_id,
-            "expires_at": expires_at.isoformat(),
-            "max_downloads": 5
-        }).execute()
+    // Update webhook status
+    await supabase.from('webhook_events')
+      .update({ status: 'processed', processed_at: new Date().toISOString() })
+      .eq('event_id', eventId);
 
-        # Update webhook status to processed
-        supabase.table("webhook_events").update({
-            "status": "processed",
-            "processed_at": datetime.now(timezone.utc).isoformat()
-        }).eq("event_id", event_id).execute()
+    const downloadLink = `https://mescriptlabs.com/api/v1/assets/download?token=${secureToken}`;
+    return Response.json({ status: 'success', download_link: downloadLink });
+  }
 
-        # Return download URL
-        download_link = f"https://mescriptlabs.com/api/v1/assets/download?token={secure_token}"
-        return {"status": "success", "download_link": download_link}
-
-    return {"status": "ignored_event"}
+  return Response.json({ status: 'ignored_event' });
+});
 ```
 
 ### Token-Verified Asset Download
-```python
-@router.get("/api/v1/assets/download")
-async def download_asset_with_token(token: str = Query(...)):
-    # 1. Fetch token record from DB
-    res = supabase.table("download_tokens").select("*").eq("token", token).execute()
-    if not res.data:
-        raise HTTPException(status_code=403, detail="Invalid or expired download token")
+```typescript
+router.get('/api/v1/assets/download', async (request: Request) => {
+  const url = new URL(request.url);
+  const token = url.searchParams.get('token');
 
-    record = res.data[0]
-    expires_at = datetime.fromisoformat(record["expires_at"])
+  if (!token) {
+    return new Response('Token required', { status: 400 });
+  }
 
-    # 2. Verify expiration & download limits
-    if datetime.now(timezone.utc) > expires_at:
-        raise HTTPException(status_code=410, detail="Download link has expired (24-hour limit reached)")
-    
-    if record["download_count"] >= record["max_downloads"]:
-        raise HTTPException(status_code=429, detail="Maximum download attempts reached")
+  // Fetch token record
+  const { data: record } = await supabase
+    .from('download_tokens')
+    .select('*')
+    .eq('token', token)
+    .single();
 
-    # 3. Increment download count
-    supabase.table("download_tokens").update({
-        "download_count": record["download_count"] + 1
-    }).eq("token", token).execute()
+  if (!record) {
+    return new Response('Invalid or expired token', { status: 403 });
+  }
 
-    # 4. Stream binary from GitHub Release Asset
-    asset_id = record["github_asset_id"]
-    github_url = f"https://api.github.com/repos/{GITHUB_ASSET_REPO}/releases/assets/{asset_id}"
-    
-    headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Accept": "application/octet-stream"
+  // Verify expiration
+  if (new Date() > new Date(record.expires_at)) {
+    return new Response('Download link expired', { status: 410 });
+  }
+
+  // Check download limit
+  if (record.download_count >= record.max_downloads) {
+    return new Response('Maximum downloads reached', { status: 429 });
+  }
+
+  // Increment download count
+  await supabase.from('download_tokens')
+    .update({ download_count: record.download_count + 1 })
+    .eq('token', token);
+
+  // Stream from GitHub
+  const assetId = record.github_asset_id;
+  const githubUrl = `https://api.github.com/repos/${GITHUB_ASSET_REPO}/releases/assets/${assetId}`;
+  
+  const response = await fetch(githubUrl, {
+    headers: {
+      'Authorization': `Bearer ${GITHUB_TOKEN}`,
+      'Accept': 'application/octet-stream'
     }
+  });
 
-    client = httpx.AsyncClient()
-    req = client.build_request("GET", github_url, headers=headers)
-    gh_res = await client.send(req, stream=True)
+  if (!response.ok) {
+    return new Response('Failed to fetch asset', { status: 500 });
+  }
 
-    if gh_res.status_code != 200:
-        await gh_res.aclose()
-        await client.aclose()
-        raise HTTPException(status_code=500, detail="Failed to fetch asset from private store")
-
-    return StreamingResponse(
-        gh_res.aiter_raw(),
-        media_type="application/octet-stream",
-        headers={"Content-Disposition": f'attachment; filename="asset_{asset_id}.zip"'},
-        background=httpx.AsyncClient().aclose
-    )
+  return new Response(response.body, {
+    headers: {
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="asset_${assetId}.zip"`
+    }
+  });
+});
 ```
 
 ### Local Development Mock Endpoint
-```python
-from fastapi import APIRouter
-
-router = APIRouter(prefix="/mock", tags=["Development Mocking"])
-
-@router.post("/simulate-buy")
-async def simulate_purchase(model_id: str, email: str):
-    """Generates a real working 24-hr download token locally without paying."""
-    mock_token = f"mock_{secrets.token_urlsafe(16)}"
-    
-    return {
-        "message": "Mock transaction successful",
-        "buyer_email": email,
-        "model_id": model_id,
-        "mock_download_url": f"http://localhost:8000/api/v1/assets/download?token={mock_token}",
-        "expires_in": "24 hours"
-    }
-```
+```typescript
+router.post('/mock/simulate-buy', async (request: Request) => {
+  const { model_id, email } = await request.json();
+  const mockToken = `mock_${crypto.randomUUID()}`;
+  
+  return Response.json({
+    message: 'Mock transaction successful',
+    buyer_email: email,
+    model_id: model_id,
+    mock_download_url: `http://localhost:8787/api/v1/assets/download?token=${mockToken}`,
+    expires_in: '24 hours'
+  });
+});
 
 ### License Tiers
 - **Individual** : Personal use, single project
@@ -422,7 +432,6 @@ async def simulate_purchase(model_id: str, email: str):
 - **AAA Studio** : Large studios, unlimited use
 
 ### Environment Variables
-- `ALLOWED_ORIGINS`: Comma-separated CORS origins
 - `CREEM_API_KEY`: Creem API key for checkout creation
 - `CREEM_WEBHOOK_SECRET`: Webhook HMAC signature secret
 - `GITHUB_TOKEN`: GitHub personal access token for asset access
@@ -433,27 +442,35 @@ async def simulate_purchase(model_id: str, email: str):
 
 ---
 
-## 5.1 Environment Variables Configuration
+## 5.1 Cloudflare Workers Configuration
 
-### Backend Environment Variables (Render)
+### wrangler.toml
+```toml
+name = "mescript-labs-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://mescriptlabs.com"
+GITHUB_ASSET_REPO = "MescriptLabs/private-assets"
+ALLOW_AI_OPS = "true"
+
+[[secrets]]
+CREEM_API_KEY
+CREEM_WEBHOOK_SECRET
+GITHUB_TOKEN
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+### Environment Variables (Cloudflare Secrets)
 ```bash
-# Creem Integration
-CREEM_API_KEY=your_creem_api_key_here
-CREEM_WEBHOOK_SECRET=your_webhook_secret_here
-
-# GitHub Integration
-GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
-GITHUB_ASSET_REPO=MescriptLabs/private-assets
-
-# Supabase Integration
-SUPABASE_URL=https://xyz.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
-
-# CORS & Security
-ALLOWED_ORIGINS=https://mescriptlabs.com,http://localhost:3000
-
-# AI Operations
-ALLOW_AI_OPS=True
+# Set secrets via wrangler CLI
+wrangler secret put CREEM_API_KEY
+wrangler secret put CREEM_WEBHOOK_SECRET
+wrangler secret put GITHUB_TOKEN
+wrangler secret put SUPABASE_URL
+wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 ```
 
 ### Frontend Environment Variables (Next.js)
@@ -551,37 +568,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 
 ## 9. Deployment Configuration
 
-### Render Backend (render.yaml)
-```yaml
-services:
-  - type: web
-    name: mescript-labs-api
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: ALLOWED_ORIGINS
-        value: https://mescriptlabs.com
-      - key: CREEM_API_KEY
-        sync: false
-      - key: CREEM_WEBHOOK_SECRET
-        sync: false
-      - key: GITHUB_TOKEN
-        sync: false
-      - key: GITHUB_ASSET_REPO
-        value: MescriptLabs/private-assets
+### Cloudflare Workers Deployment
+```bash
+# Deploy to Cloudflare Workers
+wrangler deploy
+
+# Preview deployment
+wrangler deploy --env preview
 ```
 
-### Render Frontend
-- Static export from Next.js (`output: "export"`)
-- Deployed to Render Static Sites
-- Connected to GitHub repository
+### Cloudflare Pages Deployment (Frontend)
+- Connect GitHub repository to Cloudflare Pages
+- Configure build settings:
+  - Framework: Next.js
+  - Build command: `npm run build`
+  - Output directory: `.next`
 - Auto-deploy on push to main branch
+- Preview deployments on pull requests
 
-### Health Check Cron
-- External cron service (cron-job.org or similar)
-- Pings `/health` endpoint every 10 minutes
-- Prevents Render free-tier spin-down
+### No Health Check Cron Needed
+Cloudflare Workers has no cold start issues, so no health check cron is required. Workers are always ready to handle requests.
 
 ---
 
@@ -725,9 +731,10 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 - Note: Multiple asset repositories can be used until upgrading to R3 cloud storage
 
 ### Phase 4: Backend Foundation
-- Initialize FastAPI project in `apps/backend`
-- Set up CORS, health endpoint, environment variables
-- Test locally with `uvicorn`
+- Initialize Cloudflare Workers project in `apps/backend`
+- Set up wrangler.toml configuration
+- Set up CORS, health endpoint, and environment variables
+- Test locally with `wrangler dev`
 
 ### Phase 5: Backend Core
 - Implement checkout creation endpoint with Creem integration
@@ -736,9 +743,9 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 - Add mock endpoint for local testing without real payments
 
 ### Phase 6: Backend Deployment
-- Deploy backend to Render
+- Deploy backend to Cloudflare Workers using `wrangler deploy`
 - Configure webhook URL in Creem dashboard
-- Set up external cron job for health check (prevent spin-down)
+- No health check cron needed (Cloudflare Workers has no cold starts)
 
 ### Phase 7: Frontend Foundation
 - Initialize Next.js App Router in `apps/web`
@@ -756,7 +763,9 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 - Build admin panel pages
 
 ### Phase 10: Frontend Deployment
-- Deploy to Render Static Sites
+- Deploy to Cloudflare Pages
+- Connect GitHub repository to Cloudflare Pages
+- Configure build settings for Next.js
 - Configure custom domain (if available)
 
 ### Phase 11: Testing & Verification
