@@ -80,12 +80,12 @@ Response:
 ### Create Checkout
 **POST /api/v1/checkout/create**
 
-Computes gross-up pricing and returns Creem checkout URL.
+Computes gross-up pricing based on product and license tier, returns Creem checkout URL.
 
 Request:
 ```json
 {
-  "model_id": "model_01H9X3Z",
+  "product_id": "uuid-of-product",
   "license_tier": "indie_team",
   "requested_format": "blend",
   "buyer_email": "creator@studio.com"
@@ -98,7 +98,9 @@ Response:
   "checkout_url": "https://creem.io/checkout/chk_982310842091",
   "calculated_gross_price": 26.68,
   "net_target": 25.00,
-  "currency": "USD"
+  "currency": "USD",
+  "product_title": "Sci-Fi Character Pack",
+  "license_tier": "indie_team"
 }
 ```
 
@@ -115,7 +117,7 @@ Payload:
     "transaction_id": "tx_88321094",
     "customer": { "email": "creator@studio.com" },
     "metadata": {
-      "model_id": "model_01H9X3Z",
+      "product_id": "uuid-of-product",
       "license_tier": "indie_team",
       "requested_format": "blend",
       "github_asset_id": "109823104"
@@ -214,7 +216,9 @@ CREATE TABLE products (
   title TEXT NOT NULL,
   description TEXT,
   category TEXT NOT NULL,
-  price DECIMAL(10, 2) NOT NULL,
+  individual_price DECIMAL(10, 2) NOT NULL,
+  indie_team_price DECIMAL(10, 2) NOT NULL,
+  aaa_studio_price DECIMAL(10, 2) NOT NULL,
   currency TEXT DEFAULT 'USD',
   sketchfab_model_uid TEXT,
   github_asset_id TEXT,
@@ -290,6 +294,20 @@ router.options('*', () => new Response(null, { headers: corsHeaders }));
 function calculateGrossPrice(targetNet: number): number {
   const gross = (targetNet + 0.45) / (1.0 - 0.048);
   return Math.round(gross * 100) / 100;
+}
+
+// Get price based on product and license tier
+function getProductPrice(product: any, licenseTier: string): number {
+  switch (licenseTier) {
+    case 'individual':
+      return product.individual_price;
+    case 'indie_team':
+      return product.indie_team_price;
+    case 'aaa_studio':
+      return product.aaa_studio_price;
+    default:
+      return product.individual_price;
+  }
 }
 ```
 
@@ -447,22 +465,24 @@ router.get('/api/v1/assets/download', async (request: Request) => {
 ### Local Development Mock Endpoint
 ```typescript
 router.post('/mock/simulate-buy', async (request: Request) => {
-  const { model_id, email } = await request.json();
+  const { product_id, email } = await request.json();
   const mockToken = `mock_${crypto.randomUUID()}`;
   
   return Response.json({
     message: 'Mock transaction successful',
     buyer_email: email,
-    model_id: model_id,
+    product_id: product_id,
     mock_download_url: `http://localhost:8787/api/v1/assets/download?token=${mockToken}`,
     expires_in: '24 hours'
   });
 });
 
-### License Tiers
-- **Individual** : Personal use, single project
-- **Indie Team** : Small teams, commercial use
-- **AAA Studio** : Large studios, unlimited use
+### License Tiers (Per Product Pricing)
+- **Individual**: Personal use, single project (price varies per product)
+- **Indie Team**: Small teams, commercial use (price varies per product)
+- **AAA Studio**: Large studios, unlimited use (price varies per product)
+
+Each product has its own pricing for each license tier, similar to Sketchfab or FAB marketplace.
 
 ### Environment Variables
 - `CREEM_API_KEY`: Creem API key for checkout creation
