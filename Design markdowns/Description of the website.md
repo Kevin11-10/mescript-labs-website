@@ -188,6 +188,34 @@ CREATE TABLE users (
 );
 ```
 
+### Webhook Events Table (Idempotency & Retry Tracking)
+```sql
+CREATE TABLE webhook_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id TEXT UNIQUE NOT NULL, -- Creem event/transaction ID
+  event_type TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  status TEXT DEFAULT 'pending', -- 'pending', 'processed', 'failed'
+  attempts INT DEFAULT 1,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  processed_at TIMESTAMP WITH TIME ZONE
+);
+```
+
+### Download Tokens Table (24-Hour Expiration)
+```sql
+CREATE TABLE download_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  token TEXT UNIQUE NOT NULL,
+  buyer_email TEXT NOT NULL,
+  github_asset_id TEXT NOT NULL,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  download_count INT DEFAULT 0,
+  max_downloads INT DEFAULT 5,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+```
+
 ---
 
 ## 4. Payment Flow
@@ -246,6 +274,144 @@ def verify_webhook_signature(signature: str, body: bytes, secret: str) -> bool:
         hashlib.sha256
     ).hexdigest()
     return hmac.compare_digest(computed_sig, signature)
+```
+
+### Webhook Handler with Idempotency
+```python
+import secrets
+from datetime import datetime, timedelta, timezone
+
+@router.post("/webhooks/creem")
+async def handle_creem_webhook(request: Request):
+    # 1. Validate HMAC Signature
+    signature = request.headers.get("x-creem-signature")
+    body = await request.body()
+    
+    computed_sig = hmac.new(
+        CREEM_WEBHOOK_SECRET.encode("utf-8"),
+        body,
+        hashlib.sha256
+    ).hexdigest()
+    
+    if not signature or not hmac.compare_digest(computed_sig, signature):
+        raise HTTPException(status_code=401, detail="Invalid signature")
+
+    payload = await request.json()
+    event_id = payload.get("data", {}).get("transaction_id")
+    event_type = payload.get("event")
+
+    # 2. Idempotency Check: Don't process duplicate webhooks
+    existing_event = supabase.table("webhook_events").select("*").eq("event_id", event_id).execute()
+    if existing_event.data:
+        return {"status": "already_processed"}
+
+    # 3. Log Webhook Event
+    supabase.table("webhook_events").insert({
+        "event_id": event_id,
+        "event_type": event_type,
+        "payload": payload,
+        "status": "processing"
+    }).execute()
+
+    # 4. Process Payment & Issue 24-Hour Download Token
+    if event_type == "checkout.paid":
+        metadata = payload["data"].get("metadata", {})
+        buyer_email = payload["data"]["customer"]["email"]
+        github_asset_id = metadata.get("github_asset_id", "default_asset_id")
+
+        # Generate unique 24-hour token
+        secure_token = secrets.token_urlsafe(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+
+        supabase.table("download_tokens").insert({
+            "token": secure_token,
+            "buyer_email": buyer_email,
+            "github_asset_id": github_asset_id,
+            "expires_at": expires_at.isoformat(),
+            "max_downloads": 5
+        }).execute()
+
+        # Update webhook status to processed
+        supabase.table("webhook_events").update({
+            "status": "processed",
+            "processed_at": datetime.now(timezone.utc).isoformat()
+        }).eq("event_id", event_id).execute()
+
+        # Return download URL
+        download_link = f"https://mescriptlabs.com/api/v1/assets/download?token={secure_token}"
+        return {"status": "success", "download_link": download_link}
+
+    return {"status": "ignored_event"}
+```
+
+### Token-Verified Asset Download
+```python
+@router.get("/api/v1/assets/download")
+async def download_asset_with_token(token: str = Query(...)):
+    # 1. Fetch token record from DB
+    res = supabase.table("download_tokens").select("*").eq("token", token).execute()
+    if not res.data:
+        raise HTTPException(status_code=403, detail="Invalid or expired download token")
+
+    record = res.data[0]
+    expires_at = datetime.fromisoformat(record["expires_at"])
+
+    # 2. Verify expiration & download limits
+    if datetime.now(timezone.utc) > expires_at:
+        raise HTTPException(status_code=410, detail="Download link has expired (24-hour limit reached)")
+    
+    if record["download_count"] >= record["max_downloads"]:
+        raise HTTPException(status_code=429, detail="Maximum download attempts reached")
+
+    # 3. Increment download count
+    supabase.table("download_tokens").update({
+        "download_count": record["download_count"] + 1
+    }).eq("token", token).execute()
+
+    # 4. Stream binary from GitHub Release Asset
+    asset_id = record["github_asset_id"]
+    github_url = f"https://api.github.com/repos/{GITHUB_ASSET_REPO}/releases/assets/{asset_id}"
+    
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/octet-stream"
+    }
+
+    client = httpx.AsyncClient()
+    req = client.build_request("GET", github_url, headers=headers)
+    gh_res = await client.send(req, stream=True)
+
+    if gh_res.status_code != 200:
+        await gh_res.aclose()
+        await client.aclose()
+        raise HTTPException(status_code=500, detail="Failed to fetch asset from private store")
+
+    return StreamingResponse(
+        gh_res.aiter_raw(),
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="asset_{asset_id}.zip"'},
+        background=httpx.AsyncClient().aclose
+    )
+```
+
+### Local Development Mock Endpoint
+```python
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/mock", tags=["Development Mocking"])
+
+@router.post("/simulate-buy")
+async def simulate_purchase(model_id: str, email: str):
+    """Generates a real working 24-hr download token locally without paying."""
+    mock_token = f"mock_{secrets.token_urlsafe(16)}"
+    
+    return {
+        "message": "Mock transaction successful",
+        "buyer_email": email,
+        "model_id": model_id,
+        "mock_download_url": f"http://localhost:8000/api/v1/assets/download?token={mock_token}",
+        "expires_in": "24 hours"
+    }
 ```
 
 ### License Tiers
