@@ -704,3 +704,65 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 - Responsive grid
 - Glassmorphism effects
 - Subtle hover animations
+
+---
+
+## 16. Implementation Roadmap
+
+### Phase 1: Supabase Setup (Do First)
+- Run complete SQL schema in Supabase SQL Editor
+- Set up Supabase cron job using pg_cron extension or external service (cron-job.org) to ping database every 10 minutes
+
+### Phase 2: Creem Setup
+- Sign up for Creem account
+- Get API key and webhook secret
+- Note: Webhook URL will be configured after backend deployment
+
+### Phase 3: GitHub Setup
+- Create `MescriptLabs/private-assets` repository
+- Generate fine-grained PAT with read access to private releases
+- Upload first 3D model as GitHub release
+
+### Phase 4: Backend Foundation
+- Initialize FastAPI project in `apps/backend`
+- Set up CORS, health endpoint, environment variables
+- Test locally with `uvicorn`
+
+### Phase 5: Backend Core
+- Implement checkout creation endpoint with Creem integration
+- Implement webhook handler with idempotency and token generation
+- Implement token-verified asset download endpoint
+- Add mock endpoint for local testing without real payments
+
+### Phase 6: Backend Deployment
+- Deploy backend to Render
+- Configure webhook URL in Creem dashboard
+- Set up external cron job for health check (prevent spin-down)
+
+### Phase 7: Frontend Foundation
+- Initialize Next.js App Router in `apps/web`
+- Set up Tailwind CSS with dark theme (#0B0C10)
+- Configure environment variables
+
+### Phase 8: Frontend Components
+- Build SketchfabViewer component
+- Build CheckoutModal component
+- Build YouTubeEmbed component
+
+### Phase 9: Frontend Pages
+- Build marketplace page with grid layout
+- Build portfolio, about, contact pages
+- Build admin panel pages
+
+### Phase 10: Frontend Deployment
+- Deploy to Render Static Sites
+- Configure custom domain (if available)
+
+### Phase 11: Testing & Verification
+- End-to-end payment flow test
+- Asset download verification
+- Webhook retry testing
+- Security audit
+
+### Recommended Starting Point
+Begin with **Phase 1 (Supabase schema)** since you already have the account. This provides the database foundation before any code development.
