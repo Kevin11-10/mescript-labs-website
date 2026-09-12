@@ -1,551 +1,222 @@
-# Mescript Labs Website Description
+# Mescript Labs Website - Technical Specification
 
-## Technical Stack
-- **Framework**: Next.js (App Router)
-- **Routing**: Next.js App Router (file-based routing)
-- **State Management**: Context API (best free option for Render deployment)
-- **Deployment**: Render (optimized for minimal build work to preserve free credits)
-- **Database**: Supabase (for transaction tracking and sponsor data)
-- **Payment Processing**: Creem (handles all payment processing and asset hosting)
-- **3D Rendering**: Sketchfab embeds for 3D model hosting and display
-- **Video Embedding**: YouTube embed support (including unlisted videos)
-- **Image Hosting**: ImgBB integration for image embedding
-- **AI Integration**: Auth K AI model via API for content management and automation
-
-## Design System
-**Theme**: Dark mode, cyber/tech-focused, high contrast, sleek, and minimalist
-
-**Color Palette**:
-- Primary Background: Deep charcoal/matte black (#0B0C10 or #121212)
-- Secondary Surface/Cards: Dark slate gray (#1F2833 or #1E1E1E)
-- Accent Color 1 (Tech Neon): Neon cyan or electric emerald for primary buttons, highlights, and active states
-- Accent Color 2: Warm amber/gold for special tags
-- Text: Off-white (#E0E6ED) for primary text, muted gray (#C5C6C7) for secondary text
-
-**Typography**: Clean sans-serif fonts (Inter, JetBrains Mono, or Roboto) for technical/developer feel
-
-**Layout**: Fully responsive, fast-loading, grid-based layout with subtle hover animations and glassmorphism card effects optimized for all browser types (PC and mobile)
-
-## Site Structure
-The website will have 4 main pages:
-1. Home
-2. About (separate page)
-3. Portfolio
-4. Sponsorships (initially hidden/inaccessible until ready)
-5. Marketplace (initially hidden/inaccessible until ready)
-
-**Navigation Menu**: Main, About, Portfolio, Contact
-**Hidden Pages**: Marketplace, Sponsorships (accessible only via direct URL or when enabled)
+## Overview
+Monorepo architecture with Next.js frontend and FastAPI backend, deployed on Render. Supports 3D model marketplace via Sketchfab, Creem payments, and GitHub asset delivery.
 
 ---
 
-## Home Page
+## 1. Directory Structure
 
-### Hero Section
-- Text-based hero section (background video/image to be discussed later)
-- Main headline and call-to-action
-
-### Services Section
-- Internal services: 3D Modeling, Game Development, App Development
-- These services are tracked internally but not visible to the public
-
-### About Section
-- Brief studio description/mission statement
-- Team information section managed via JSON file
-- Team data includes: name, role, bio, social links, photo URL
-
-### Contact Section
-- Contact form for user inquiries
-- Form fields: Name, Email, Subject (dropdown: Commission, Complaint, Fan Mail, Suggestion), Message
-- Form submissions sent to mescriptlabs@gmail.com (will switch to domain email after purchasing domain)
-- Email delivery only (no Supabase storage for contact submissions)
-- Form validation: Standard email validation and required field checks
-- Additional contact methods: YouTube channel (https://www.youtube.com/@MescriptLabs)
-
----
-
-## Portfolio Page
-
-### Purpose
-Showcase studio works with media streamed from external URLs (YouTube, Imgur, Vimeo, etc.)
-
-### Display Structure
-- Grid template layout
-- Works grouped by media type (images/videos) and project categories
-- Categories include:
-  - Props and Low Poly Assets
-  - Scenes and Environments
-  - Games and Apps
-  - Product Renders
-  - Archiviz Renders
-
-### User Interaction
-- Media requires click to play (to save user bandwidth)
-- Category filtering available
-- Only categories with assigned media are displayed (no empty categories)
-
-### Work Details
-- Clicking a portfolio item opens a modal with further details
-- Image thumbnails with detailed information on click
-
-### Data Management
-- JSON file stored in repository for tracking and assigning media
-- JSON structure includes:
-  - Title of the work
-  - Description
-  - Category
-  - URL
-  - Thumbnail URL
-  - Date (optional)
-  - Client name (optional)
+```
+mescript-labs-monorepo/
+├── apps/
+│   ├── web/                         # Next.js App Router Frontend
+│   │   ├── src/
+│   │   │   ├── app/                 # App Router pages
+│   │   │   │   ├── (public)/        # Public routes
+│   │   │   │   │   ├── page.tsx     # Home
+│   │   │   │   │   ├── about/       # About page
+│   │   │   │   │   ├── portfolio/   # Portfolio gallery
+│   │   │   │   │   ├── contact/     # Contact form
+│   │   │   │   │   ├── marketplace/ # 3D asset marketplace
+│   │   │   │   │   ├── sponsorships/# Funding & goals
+│   │   │   │   │   └── admin/       # Admin panel
+│   │   │   ├── components/          # UI components
+│   │   │   │   ├── ui/              # Base components
+│   │   │   │   ├── SketchfabViewer.tsx
+│   │   │   │   ├── YouTubeEmbed.tsx
+│   │   │   │   └── CheckoutModal.tsx
+│   │   │   ├── lib/                 # Client utilities
+│   │   │   │   ├── creem.ts
+│   │   │   │   ├── supabase.ts
+│   │   │   │   └── api.ts
+│   │   │   └── types/               # TypeScript types
+│   │   ├── public/
+│   │   ├── next.config.ts
+│   │   └── package.json
+│   │
+│   └── backend/                     # FastAPI Backend
+│       ├── app/
+│       │   ├── main.py              # App entry point
+│       │   ├── config.py            # Config & env vars
+│       │   ├── routers/
+│       │   │   ├── health.py        # Health check
+│       │   │   ├── checkout.py      # Payment logic
+│       │   │   ├── webhooks.py      # Webhook handlers
+│       │   │   ├── assets.py        # Asset streaming
+│       │   │   └── admin_ai.py      # AI integration
+│       │   ├── services/
+│       │   │   ├── github.py
+│       │   │   ├── creem.py
+│       │   │   ├── sketchfab.py
+│       │   │   └── supabase.py
+│       │   └── models/
+│       │       └── schemas.py
+│       ├── requirements.txt
+│       └── render.yaml
+│
+└── config/
+    └── agent_instructions.md
+```
 
 ---
 
-## Marketplace Page
+## 2. API Endpoints
 
-### Purpose
-Sell studio assets, apps, software, addons, scripts, etc.
+### Health Check
+**GET /health**
 
-### Payment Integration
-- Creem handles all payment processing
-- No sign-up required for users
-- Creem manages payment methods and transactions
+Prevents Render free-tier spin-down.
 
-### Product Display
-- Card-based grid layout
-- Cards open to detailed product pages when selected
-- Product categories: 3D Models, Scripts and Addons
+Response:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-09-12T11:10:34Z",
+  "uptime_seconds": 142850
+}
+```
 
-### Asset Delivery
-- Creem handles asset hosting and delivery
-- Assets uploaded to Creem platform
-- No manual GitHub repository management needed
+### Create Checkout
+**POST /api/v1/checkout/create**
 
-### Product Management
-- Products managed entirely via Creem dashboard
-- Creem handles: product creation, pricing, inventory, payment processing, tax compliance, license keys
-- No JSON file needed for products (Creem manages everything)
-- Website displays products via Creem API or storefront integration
+Computes gross-up pricing and returns Creem checkout URL.
 
-### Transaction Tracking
-- Supabase database tracks all financial data
-- Transactions updated immediately after completion
-- Optional Discord bot integration for team transparency
-- Transaction flow: Payment → Supabase DB → Discord Bot (optional)
+Request:
+```json
+{
+  "model_id": "model_01H9X3Z",
+  "license_tier": "indie_team",
+  "requested_format": "blend",
+  "buyer_email": "creator@studio.com"
+}
+```
 
-**Note**: Marketplace page will be initially hidden/inaccessible until fully developed
+Response:
+```json
+{
+  "checkout_url": "https://creem.io/checkout/chk_982310842091",
+  "calculated_gross_price": 26.68,
+  "net_target": 25.00,
+  "currency": "USD"
+}
+```
 
----
+### Creem Webhook
+**POST /webhooks/creem**
 
-## Sponsorships Page
+Headers: `x-creem-signature` (HMAC SHA-256)
 
-### Purpose
-Allow community supporters to donate and companies to partner/sponsor the studio
+Payload:
+```json
+{
+  "event": "checkout.paid",
+  "data": {
+    "transaction_id": "tx_88321094",
+    "customer": { "email": "creator@studio.com" },
+    "metadata": {
+      "model_id": "model_01H9X3Z",
+      "license_tier": "indie_team",
+      "requested_format": "blend",
+      "github_asset_id": "109823104"
+    },
+    "amount": 26.68,
+    "currency": "USD"
+  }
+}
+```
 
-### Sponsorship Types
-- Goal-based sponsorships (with progress bars)
-- One-time donations
+### Asset Download
+**GET /api/v1/assets/download/{asset_id}**
 
-### Payment Processing
-- Creem handles all payment processing (only payment method)
+Streams binary from private GitHub releases.
 
-### Sponsorship Benefits
-- Different sponsorship tiers with varying benefits
-- **Individual Sponsorship Tiers** (for community supporters only):
-  - **Bronze** ($5-10): Basic support tier
-  - **Silver** ($25-50): Mid-tier with discounts
-  - **Gold** ($100-250): High-tier with perks
-  - **Platinum** ($500+): Premium tier with maximum benefits
-  - **Diamond** ($1000+): Elite tier with exclusive benefits
-- Benefits include:
-  - Discounts on products
-  - Early access to new releases
-  - Recognition through testimonials
-  - Cameos in products, games, or movies
-  - Behind-the-scenes content access
-
-### Goal-Based Sponsorships
-- Fund specific studio aspects (domain name, new app development, company emails, etc.)
-- Progress bars show funding status
-- Examples: $20 USDT for domain name, $50 USDT for company emails
-
-### One-Time Donations
-- "Buy me a coffee" style donations
-- General support for the team
-
-### Data Management
-- Supabase database tracks all transactions with unique IDs
-- Goal-based donations update milestone progress bars
-- All transactions registered in database
-
-### Discord Bot (Future Implementation)
-- Internal team server bot for work coordination and transparency
-- Displays goal-based donations and transactions to team
-- Not for public user interaction
-- Implementation timeline: to be determined later
-
-**Note**: Progress bar implementation being reconsidered based on Creem sponsorship capabilities
+Headers:
+- `Content-Type: application/octet-stream`
+- `Content-Disposition: attachment; filename="asset.zip"`
+- `Cache-Control: no-store, private`
 
 ---
 
-**Note**: Marketplace page will be initially hidden/inaccessible until fully developed
+## 3. Payment Flow
+
+1. User selects license tier and format
+2. Frontend calls `/api/v1/checkout/create`
+3. Backend calculates gross price and requests Creem checkout
+4. User redirected to Creem for payment
+5. Creem sends webhook to `/webhooks/creem`
+6. Backend verifies signature and logs to Supabase
+7. User redirected to success page
+8. User downloads asset via `/api/v1/assets/download/{asset_id}`
 
 ---
 
-## Database Schema (Supabase)
+## 4. Backend Implementation
 
-### Tables to be created:
-1. **transactions**
-   - id (UUID, primary key)
-   - transaction_id (string, unique)
-   - amount (decimal)
-   - currency (string)
-   - type (string: 'goal_donation', 'one_time_donation', 'marketplace_purchase')
-   - status (string)
-   - timestamp (timestamp)
-   - user_info (jsonb, optional)
-   - metadata (jsonb)
+### Pricing Formula
+```
+Gross = (Target + 0.45) / (1 - 0.048)
+```
 
-2. **sponsorship_goals**
-   - id (UUID, primary key)
-   - title (string)
-   - description (text)
-   - target_amount (decimal)
-   - current_amount (decimal)
-   - currency (string)
-   - status (string: 'active', 'completed', 'cancelled')
-   - created_at (timestamp)
-   - deadline (timestamp, optional)
+### License Tiers
+- Individual: $10.00
+- Indie Team: $25.00
+- AAA Studio: $100.00
 
-3. **users** (for admin panel)
-   - id (UUID, primary key)
-   - email (string, unique)
-   - password_hash (string)
-   - role (string: 'owner', 'admin', 'editor')
-   - created_at (timestamp)
-   - last_login (timestamp)
-   - is_active (boolean)
-
-4. **contact_submissions**
-   - REMOVED: Contact form submissions sent via email only, not stored in Supabase
+### Environment Variables
+- `ALLOWED_ORIGINS`: Comma-separated CORS origins
+- `CREEM_API_KEY`: Creem API key
+- `CREEM_WEBHOOK_SECRET`: Webhook HMAC secret
+- `GITHUB_TOKEN`: GitHub personal access token
+- `GITHUB_ASSET_REPO`: Private assets repo
 
 ---
 
-## Development Notes
+## 5. Frontend Components
 
-### Current Status
-- Planning and refinement phase
-- No code implementation yet
-- Marketplace and Sponsorships pages to be developed later (hidden initially)
+### SketchfabViewer
+Interactive 3D model viewer using Sketchfab embeds.
 
-### Implementation Priorities
-1. **Phase 1 - Core Infrastructure**:
-   - Set up Next.js project with App Router
-   - Configure file-based routing
-   - Set up Supabase database and authentication
-   - Create basic layout and navigation
-   - Implement WordPress-style admin authentication system
-   - Set up Sketchfab embed component
-   - Set up YouTube embed component
-   - Configure ImgBB image integration
-   - Integrate Auth K AI model API
+### CheckoutModal
+Modal for selecting license tier, format, and email before checkout.
 
-2. **Phase 2 - Main Pages**:
-   - Build Home page with hero, services, about sections
-   - Create separate About page
-   - Build Portfolio page with JSON data structure
-   - Implement contact form with email delivery
-   - Add Sketchfab 3D model embed component
-   - Add YouTube video embed component
-   - Add ImgBB image gallery component
-
-3. **Phase 3 - Admin Panel**:
-   - Build admin dashboard
-   - Create JSON editing interfaces
-   - Implement user management (Owner/Admin/Editor roles)
-   - Add transaction monitoring
-   - Add Sketchfab model URL management
-   - Add YouTube video URL management
-   - Add ImgBB image URL management
-   - Add Auth K AI integration for content automation
-
-4. **Phase 4 - Hidden Pages**:
-   - Build Sponsorships page (hidden initially)
-   - Implement progress bars for goal-based sponsorships
-   - Build Marketplace page (hidden initially)
-   - Integrate Creem API for payments
-
-5. **Phase 5 - Advanced Features**:
-   - Set up GitHub API integration for automation
-   - Configure backup system to private GitHub repo
-   - Enhance Auth K AI integration capabilities
-
-### Known Assets & Information
-- **Logo**: Available
-- **Portfolio Items**: A few images/videos available (URLs to be provided)
-- **Team Information**: Placeholder content initially (real info to be added later)
-- **YouTube Channel**: https://www.youtube.com/@MescriptLabs
-- **Contact Email**: mescriptlabs@gmail.com
-- **GitHub Repo**: To be created by developer
-- **Render Domain**: Default Render subdomain
-
-### Next Steps
-- Set up React project structure
-- Configure Supabase database tables
-- Integrate Creem API
-- Create JSON data structures for portfolio and team
-- Build authentication system
-- Draft privacy policy and terms of service
+### YouTubeEmbed
+Responsive YouTube video embed with lazy loading.
 
 ---
 
-## Security & Performance
+## 6. AI Prompts for Development
 
-### Security Measures
-- Rate limiting: Implement basic rate limiting for contact form and API calls (to prevent abuse)
-- CSRF protection: Implement CSRF protection for form submissions (security best practice)
-- Environment variables: Use Render environment variables for API keys and secrets
-- Password hashing: bcrypt for secure password storage
+### Backend Setup
+```
+Initialize FastAPI in /apps/backend with CORS middleware, /health endpoint, and Creem pricing utility. Use Pydantic v2 and python-dotenv.
+```
 
-### Performance Optimization
-- Image optimization: Automatic image optimization (using free tools like sharp or Next.js Image)
-- Caching: Render's built-in CDN and edge caching (free tier)
-- Code splitting: Implement React code splitting for faster initial load
-- Lazy loading: Lazy load images and components
+### Asset Streaming
+```
+Create GET /api/v1/assets/download/{asset_id} using httpx.AsyncClient to stream from GitHub releases with 8KB chunks. Handle 404s gracefully.
+```
 
-### Error Handling & Monitoring
-- Error logging: Console logging with optional error tracking service (free tier options)
-- No paid monitoring services initially (budget constraints)
-
----
-
-## Backup Strategy
-
-### Supabase Data Backup
-- Automated backups to private GitHub repository
-- Use GitHub Personal Access Token (PAT) for authentication
-- Backup schedule: Daily automated backups
-- Backup content: Database dumps and JSON files
-- Repository: Private GitHub repo with restricted access
+### Marketplace UI
+```
+Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers, and CheckoutModal integration.
+```
 
 ---
 
-## Legal Pages
+## 7. Design System
 
-### Required Pages
-- **Privacy Policy**: To be drafted later (required for data collection)
-- **Terms of Service**: To be drafted later (required for website usage)
-- Both pages will be added to site navigation
-- Content to be created based on actual site functionality
+### Colors
+- Background: #0B0C10
+- Cards: #1F2833
+- Accent: Cyan (#00FFFF) and Amber (#FFD700)
+- Text: #E0E6ED (primary), #C5C6C7 (secondary)
 
-### Cookie Usage
-- Minimal cookie usage (only for essential functionality like authentication)
-- Cookie consent banner if cookies are used for analytics
-- Privacy-focused approach (no unnecessary tracking)
+### Typography
+- Font: Inter, JetBrains Mono, or Roboto
+- Style: Clean, technical, developer-focused
 
----
-
-### Deployment Workflow
-
-### Development Process
-- Manual coding ("vibe coding")
-- Code review by experienced developer before deployment
-- Push to GitHub repository
-- Automatic deployment via Render (connected to GitHub repo)
-
-### Environment Management
-- Render environment variables for:
-  - Supabase credentials
-  - Creem API keys
-  - Auth K AI API keys
-  - Other sensitive configuration
-
-### Testing Strategy
-- Manual testing by friends and coworkers
-- No automated testing initially (budget/time constraints)
-- Focus on core functionality testing
-
----
-
-## Accessibility
-
-### Target Standards
-- Basic accessibility optimization
-- Screen reader compatibility (where feasible)
-- Keyboard navigation support
-- Alt text for images
-- Proper heading hierarchy
-- Color contrast compliance (WCAG 2.1 AA where possible)
-
----
-
-## Content Strategy
-
-### Initial Content
-- Limited initial portfolio items (few images and videos)
-- Basic team information
-- Placeholder content for development
-
-### Content Updates
-- All content updates through admin panel
-- JSON-based content management
-- No direct file editing required after initial setup
-
----
-
-## Analytics & SEO
-
-### Analytics
-- Free analytics solution compatible with Render (Plausible or Render Analytics)
-- Track page views, user sessions, and basic engagement metrics
-- No Google Analytics (privacy-focused approach)
-
-### SEO
-- Meta tags for each page (title, description, keywords)
-- Open Graph tags for social media sharing
-- Structured data markup for better search visibility
-- Sitemap.xml generation
-- Robots.txt configuration
-- Performance optimization for best possible Lighthouse scores
-
-### Browser Support
-- Primary: Latest Chrome, Firefox, Safari, Edge
-- Mobile: iOS Safari, Chrome Mobile
-- No IE11 support
-
----
-
-## Footer
-- Credits for Authentic, Supabase, Render, Github etc
-### Content
-- Social media links (YouTube channel)
-- Credits to sponsors and partners
-- Copyright information
-- Studio branding
-
-### Social Links
-- YouTube channel (currently blank, will upload content when work commences)
-- Additional platforms to be determined
-
----
-
-## Admin Panel & User System
-
-### User Authentication
-- Admin panel accessible via `/admin` route
-- WordPress-style authentication system:
-  - Login page with email/password
-  - Session management with secure cookies
-  - Password reset functionality
-  - Remember me option
-- User roles:
-  - **Owner** (untouchable god account - yours alone): Full access including user management
-  - **Admin**: Full access except cannot create/edit other admins or owner
-  - **Editor**: Limited access to content editing only
-- Only Owner can create/edit Admin accounts
-- Admins can create/edit Editor accounts
-- Password hashing for security
-- Unauthorized access redirects to login page
-
-### Admin Capabilities
-- Edit JSON files directly from admin panel
-- Manage portfolio items via JSON
-- Update team information via JSON
-- Monitor sponsorship goals and transactions
-- AI integration for content automation (future feature)
-- Note: Contact form submissions not stored in Supabase (email only)
-
-### AI Integration
-- Integration with Auth Intelligence (via API keys) for AI-powered content management
-- AI model acts as intermediary to communicate with external APIs:
-  - **GitHub API**: Automate pull requests, repository management, and site updates
-  - **Creem.io API**: Manage products, transactions, and payment processing
-- AI-assisted content generation and organization
-- Automated portfolio categorization and tagging
-- API-based integration for secure access to AI services
-- Potential features:
-  - AI-powered content suggestions
-  - Automated metadata generation
-  - Smart categorization algorithms
-  - Behavioral analytics for user engagement
-  - Automated GitHub pull requests for content updates
-  - Automated Creem product management
-
-### AI Safety Measures (Anti-Rogue Protocols)
-- **Approval Workflow**: All automated actions require human approval before execution
-- **Scope Restrictions**: API keys limited to specific endpoints and actions only
-- **Rate Limiting**: Strict rate limits on AI-initiated API calls
-- **Audit Logging**: All AI actions logged with timestamps and user attribution
-- **Emergency Stop**: Kill switch to immediately halt all AI operations
-- **Sandbox Environment**: AI operations isolated from production until approved
-- **Review Queue**: Automated changes placed in review queue before deployment
-- **Permission Boundaries**: AI cannot access sensitive data or perform destructive actions
-- **Time-Based Restrictions**: AI operations limited to specific time windows
-- **Multi-Factor Approval**: Critical actions require multiple admin approvals
-
----
-
-## Hero Section
-
-### Headline (Suggestion)
-"Crafting Digital Experiences at the Intersection of 3D, Gaming, and Innovation"
-
-### Call-to-Action
-- Primary: "Explore Our Work" (links to Portfolio)
-- Secondary: "Get in Touch" (links to Contact)
-
-**Note**: Hero headline and CTA to be finalized based on studio branding preferences
-
----
-
-## Media Embedding Capabilities
-
-### 3D Model Embedding
-- **Technology**: Sketchfab embeds
-- **Supported Formats**: All formats supported by Sketchfab (.glb, .gltf, .obj, .fbx, etc.)
-- **Features**:
-  - Interactive 3D model viewer
-  - Orbit controls (rotate, zoom, pan)
-  - Auto-rotate option
-  - Lighting controls
-  - Model optimization handled by Sketchfab
-  - No local hosting required
-- **Use Cases**:
-  - Portfolio item previews
-  - Hero section 3D elements
-  - Product showcases
-  - Interactive demos
-
-### YouTube Video Embedding
-- **Support**: All YouTube videos including unlisted
-- **Features**:
-  - Responsive video player
-  - Custom player controls
-  - Lazy loading for performance
-  - Autoplay options
-  - Playlist support
-- **Use Cases**:
-  - Portfolio video showcases
-  - Game trailers
-  - Tutorial content
-  - Behind-the-scenes footage
-
-### ImgBB Image Embedding
-- **Integration**: Direct ImgBB URL support
-- **Features**:
-  - Responsive image gallery
-  - Lightbox/modal for full-size viewing
-  - Image optimization
-  - Lazy loading
-  - Alt text support
-- **Use Cases**:
-  - Portfolio image galleries
-  - Product screenshots
-  - Team photos
-  - Project thumbnails
-
-### Media Management
-- All media URLs managed via JSON files
-- Admin panel for adding/editing media URLs
-- Support for multiple media types per portfolio item
-- Thumbnail generation for videos/3D models
+### Layout
+- Responsive grid
+- Glassmorphism effects
+- Subtle hover animations
