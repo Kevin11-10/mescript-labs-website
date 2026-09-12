@@ -417,9 +417,9 @@ async def simulate_purchase(model_id: str, email: str):
 ```
 
 ### License Tiers
-- **Individual** ($10.00): Personal use, single project
-- **Indie Team** ($25.00): Small teams, commercial use
-- **AAA Studio** ($100.00): Large studios, unlimited use
+- **Individual** : Personal use, single project
+- **Indie Team** : Small teams, commercial use
+- **AAA Studio** : Large studios, unlimited use
 
 ### Environment Variables
 - `ALLOWED_ORIGINS`: Comma-separated CORS origins
@@ -719,9 +719,10 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 - Note: Webhook URL will be configured after backend deployment
 
 ### Phase 3: GitHub Setup
-- Create `MescriptLabs/private-assets` repository
+- Create `MescriptLabs/private-assets` repository (or multiple repos for different asset categories)
 - Generate fine-grained PAT with read access to private releases
 - Upload first 3D model as GitHub release
+- Note: Multiple asset repositories can be used until upgrading to R3 cloud storage
 
 ### Phase 4: Backend Foundation
 - Initialize FastAPI project in `apps/backend`
