@@ -198,16 +198,34 @@ CREATE TABLE sponsorship_goals (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 5. Users Table (Admin Panel)
+-- 5. Users Table (Admin Panel & Regular Users)
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role TEXT CHECK (role IN ('owner', 'admin', 'editor')) NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+  role TEXT CHECK (role IN ('owner', 'admin', 'editor', 'user')) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  last_login TIMESTAMP WITH TIME ZONE
 );
 
--- 6. AI Audit Logs Table
+-- 6. Products Table (AI-Indexed from JSON)
+CREATE TABLE products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  category TEXT NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  currency TEXT DEFAULT 'USD',
+  sketchfab_model_uid TEXT,
+  github_asset_id TEXT,
+  thumbnail_url TEXT,
+  metadata JSONB,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 7. AI Audit Logs Table
 CREATE TABLE ai_audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   action_type TEXT NOT NULL,
@@ -216,6 +234,21 @@ CREATE TABLE ai_audit_logs (
   status TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+```
+
+### Database Cleanup Snippet
+```sql
+-- WARNING: This will delete all data. Use with caution.
+-- Drop all tables in correct order to handle foreign key constraints
+DROP TABLE IF EXISTS ai_audit_logs CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS sponsorship_goals CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS download_tokens CASCADE;
+DROP TABLE IF EXISTS webhook_events CASCADE;
+
+-- Re-run the schema initialization after cleanup
 ```
 
 ---
@@ -783,7 +816,7 @@ Begin with **Phase 1 (Supabase schema)** since you already have the account. Thi
 
 ### Phase 1: Supabase Setup (3 tasks)
 1. Enable UUID extension in Supabase SQL Editor
-2. Run complete SQL schema initialization (6 tables: webhook_events, download_tokens, transactions, sponsorship_goals, users, ai_audit_logs)
+2. Run complete SQL schema initialization (7 tables: webhook_events, download_tokens, transactions, sponsorship_goals, users, products, ai_audit_logs)
 3. Set up Supabase cron job using pg_cron extension or external service (cron-job.org) to ping database every 10 minutes
 
 ### Phase 2: Creem Setup (4 tasks)
