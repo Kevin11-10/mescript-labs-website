@@ -304,12 +304,12 @@ Allow community supporters to donate and companies to partner/sponsor the studio
 ### Security Measures
 - Rate limiting: Implement basic rate limiting for contact form and API calls (to prevent abuse)
 - CSRF protection: Implement CSRF protection for form submissions (security best practice)
-- Environment variables: Use Netlify environment variables for API keys and secrets
+- Environment variables: Use Render environment variables for API keys and secrets
 - Password hashing: bcrypt for secure password storage
 
 ### Performance Optimization
 - Image optimization: Automatic image optimization (using free tools like sharp or Next.js Image)
-- Caching: Netlify's built-in CDN and edge caching (free tier)
+- Caching: Render's built-in CDN and edge caching (free tier)
 - Code splitting: Implement React code splitting for faster initial load
 - Lazy loading: Lazy load images and components
 
@@ -396,7 +396,7 @@ Allow community supporters to donate and companies to partner/sponsor the studio
 ## Analytics & SEO
 
 ### Analytics
-- Free analytics solution compatible with Netlify (Plausible or Netlify Analytics)
+- Free analytics solution compatible with Render (Plausible or Render Analytics)
 - Track page views, user sessions, and basic engagement metrics
 - No Google Analytics (privacy-focused approach)
 
