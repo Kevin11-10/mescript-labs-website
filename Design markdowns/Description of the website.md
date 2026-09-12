@@ -145,65 +145,24 @@ Error Responses:
 
 ## 3. Database Schema (Supabase)
 
-### Transactions Table
+### Complete Schema Initialization
 ```sql
-CREATE TABLE transactions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  transaction_id VARCHAR(255) UNIQUE NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  currency VARCHAR(3) DEFAULT 'USD',
-  type VARCHAR(50) NOT NULL, -- 'goal_donation', 'one_time_donation', 'marketplace_purchase'
-  status VARCHAR(50) NOT NULL,
-  timestamp TIMESTAMP DEFAULT NOW(),
-  user_info JSONB,
-  metadata JSONB
-);
-```
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-### Sponsorship Goals Table
-```sql
-CREATE TABLE sponsorship_goals (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title VARCHAR(255) NOT NULL,
-  description TEXT,
-  target_amount DECIMAL(10,2) NOT NULL,
-  current_amount DECIMAL(10,2) DEFAULT 0,
-  currency VARCHAR(3) DEFAULT 'USD',
-  status VARCHAR(50) DEFAULT 'active', -- 'active', 'completed', 'cancelled'
-  created_at TIMESTAMP DEFAULT NOW(),
-  deadline TIMESTAMP
-);
-```
-
-### Users Table (Admin Panel)
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  role VARCHAR(50) NOT NULL, -- 'owner', 'admin', 'editor'
-  created_at TIMESTAMP DEFAULT NOW(),
-  last_login TIMESTAMP,
-  is_active BOOLEAN DEFAULT TRUE
-);
-```
-
-### Webhook Events Table (Idempotency & Retry Tracking)
-```sql
+-- 1. Webhook Events Table (Idempotency & Retry Tracking)
 CREATE TABLE webhook_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  event_id TEXT UNIQUE NOT NULL, -- Creem event/transaction ID
+  event_id TEXT UNIQUE NOT NULL,
   event_type TEXT NOT NULL,
   payload JSONB NOT NULL,
-  status TEXT DEFAULT 'pending', -- 'pending', 'processed', 'failed'
+  status TEXT DEFAULT 'pending',
   attempts INT DEFAULT 1,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   processed_at TIMESTAMP WITH TIME ZONE
 );
-```
 
-### Download Tokens Table (24-Hour Expiration)
-```sql
+-- 2. Download Tokens Table (24-Hour Expiration)
 CREATE TABLE download_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   token TEXT UNIQUE NOT NULL,
@@ -212,6 +171,49 @@ CREATE TABLE download_tokens (
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
   download_count INT DEFAULT 0,
   max_downloads INT DEFAULT 5,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 3. Transactions Table
+CREATE TABLE transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  transaction_id TEXT UNIQUE NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  currency TEXT DEFAULT 'USD',
+  type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  buyer_email TEXT NOT NULL,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 4. Sponsorship Goals Table
+CREATE TABLE sponsorship_goals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  target_amount DECIMAL(10, 2) NOT NULL,
+  current_amount DECIMAL(10, 2) DEFAULT 0.00,
+  status TEXT DEFAULT 'active',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 5. Users Table (Admin Panel)
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT CHECK (role IN ('owner', 'admin', 'editor')) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 6. AI Audit Logs Table
+CREATE TABLE ai_audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  action_type TEXT NOT NULL,
+  executed_by TEXT DEFAULT 'AI_Agent',
+  details JSONB NOT NULL,
+  status TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 ```
@@ -426,7 +428,43 @@ async def simulate_purchase(model_id: str, email: str):
 - `GITHUB_TOKEN`: GitHub personal access token for asset access
 - `GITHUB_ASSET_REPO`: Private GitHub repository for assets
 - `SUPABASE_URL`: Supabase project URL
-- `SUPABASE_KEY`: Supabase service role key
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabase service role key (bypasses RLS)
+- `ALLOW_AI_OPS`: Emergency kill switch for AI operations (True/False)
+
+---
+
+## 5.1 Environment Variables Configuration
+
+### Backend Environment Variables (Render)
+```bash
+# Creem Integration
+CREEM_API_KEY=your_creem_api_key_here
+CREEM_WEBHOOK_SECRET=your_webhook_secret_here
+
+# GitHub Integration
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+GITHUB_ASSET_REPO=MescriptLabs/private-assets
+
+# Supabase Integration
+SUPABASE_URL=https://xyz.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+
+# CORS & Security
+ALLOWED_ORIGINS=https://mescriptlabs.com,http://localhost:3000
+
+# AI Operations
+ALLOW_AI_OPS=True
+```
+
+### Frontend Environment Variables (Next.js)
+```bash
+# API Endpoints
+NEXT_PUBLIC_API_URL=https://api.mescriptlabs.com
+
+# Supabase (Public)
+NEXT_PUBLIC_SUPABASE_URL=https://xyz.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+```
 
 ---
 
