@@ -1,7 +1,7 @@
 # Mescript Labs Website - Technical Specification
 
 ## Overview
-Monorepo architecture with Next.js frontend and Cloudflare Workers backend, deployed on Cloudflare. Supports 3D model marketplace via Sketchfab, Creem payments, and GitHub asset delivery.
+Monorepo architecture with Astro frontend and Cloudflare Workers backend, deployed on Cloudflare. Supports 3D model marketplace via Sketchfab, Creem payments, GitHub asset delivery, and Supabase for data persistence.
 
 ---
 
@@ -10,29 +10,27 @@ Monorepo architecture with Next.js frontend and Cloudflare Workers backend, depl
 ```
 mescript-labs-monorepo/
 ├── apps/
-│   ├── web/                         # Next.js App Router Frontend
+│   ├── web/                         # Astro Frontend
 │   │   ├── src/
-│   │   │   ├── app/                 # App Router pages
-│   │   │   │   ├── (public)/        # Public routes
-│   │   │   │   │   ├── page.tsx     # Home
-│   │   │   │   │   ├── about/       # About page
-│   │   │   │   │   ├── portfolio/   # Portfolio gallery
-│   │   │   │   │   ├── contact/     # Contact form
-│   │   │   │   │   ├── marketplace/ # 3D asset marketplace
-│   │   │   │   │   ├── sponsorships/# Funding & goals
-│   │   │   │   │   └── admin/       # Admin panel
-│   │   │   ├── components/          # UI components
-│   │   │   │   ├── ui/              # Base components
-│   │   │   │   ├── SketchfabViewer.tsx
-│   │   │   │   ├── YouTubeEmbed.tsx
-│   │   │   │   └── CheckoutModal.tsx
+│   │   │   ├── pages/               # Astro pages
+│   │   │   │   ├── index.astro      # Home
+│   │   │   │   ├── about.astro      # About page
+│   │   │   │   ├── portfolio.astro  # Portfolio gallery
+│   │   │   │   ├── contact.astro    # Contact form
+│   │   │   │   ├── marketplace.astro # 3D asset marketplace
+│   │   │   │   ├── sponsorships.astro # Funding & goals
+│   │   │   │   └── admin.astro      # Admin panel
+│   │   │   ├── components/          # Astro components
+│   │   │   │   ├── SketchfabViewer.astro
+│   │   │   │   ├── YouTubeEmbed.astro
+│   │   │   │   └── CheckoutModal.astro
 │   │   │   ├── lib/                 # Client utilities
 │   │   │   │   ├── creem.ts
 │   │   │   │   ├── supabase.ts
 │   │   │   │   └── api.ts
 │   │   │   └── types/               # TypeScript types
 │   │   ├── public/
-│   │   ├── next.config.ts
+│   │   ├── astro.config.mjs
 │   │   └── package.json
 │   │
 │   └── backend/                     # Cloudflare Workers Backend
@@ -80,12 +78,12 @@ Response:
 ### Create Checkout
 **POST /api/v1/checkout/create**
 
-Computes gross-up pricing and returns Creem checkout URL.
+Computes gross-up pricing based on product and license tier, returns Creem checkout URL.
 
 Request:
 ```json
 {
-  "model_id": "model_01H9X3Z",
+  "product_id": "uuid-of-product",
   "license_tier": "indie_team",
   "requested_format": "blend",
   "buyer_email": "creator@studio.com"
@@ -98,7 +96,9 @@ Response:
   "checkout_url": "https://creem.io/checkout/chk_982310842091",
   "calculated_gross_price": 26.68,
   "net_target": 25.00,
-  "currency": "USD"
+  "currency": "USD",
+  "product_title": "Sci-Fi Character Pack",
+  "license_tier": "indie_team"
 }
 ```
 
@@ -115,7 +115,7 @@ Payload:
     "transaction_id": "tx_88321094",
     "customer": { "email": "creator@studio.com" },
     "metadata": {
-      "model_id": "model_01H9X3Z",
+      "product_id": "uuid-of-product",
       "license_tier": "indie_team",
       "requested_format": "blend",
       "github_asset_id": "109823104"
@@ -145,7 +145,7 @@ Error Responses:
 
 ## 3. Database Schema (Supabase)
 
-### Complete Schema Initialization
+### Complete Schema Initialization (SQL)
 ```sql
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -214,7 +214,9 @@ CREATE TABLE products (
   title TEXT NOT NULL,
   description TEXT,
   category TEXT NOT NULL,
-  price DECIMAL(10, 2) NOT NULL,
+  individual_price DECIMAL(10, 2) NOT NULL,
+  indie_team_price DECIMAL(10, 2) NOT NULL,
+  aaa_studio_price DECIMAL(10, 2) NOT NULL,
   currency TEXT DEFAULT 'USD',
   sketchfab_model_uid TEXT,
   github_asset_id TEXT,
@@ -290,6 +292,20 @@ router.options('*', () => new Response(null, { headers: corsHeaders }));
 function calculateGrossPrice(targetNet: number): number {
   const gross = (targetNet + 0.45) / (1.0 - 0.048);
   return Math.round(gross * 100) / 100;
+}
+
+// Get price based on product and license tier
+function getProductPrice(product: any, licenseTier: string): number {
+  switch (licenseTier) {
+    case 'individual':
+      return product.individual_price;
+    case 'indie_team':
+      return product.indie_team_price;
+    case 'aaa_studio':
+      return product.aaa_studio_price;
+    default:
+      return product.individual_price;
+  }
 }
 ```
 
@@ -447,22 +463,24 @@ router.get('/api/v1/assets/download', async (request: Request) => {
 ### Local Development Mock Endpoint
 ```typescript
 router.post('/mock/simulate-buy', async (request: Request) => {
-  const { model_id, email } = await request.json();
+  const { product_id, email } = await request.json();
   const mockToken = `mock_${crypto.randomUUID()}`;
   
   return Response.json({
     message: 'Mock transaction successful',
     buyer_email: email,
-    model_id: model_id,
+    product_id: product_id,
     mock_download_url: `http://localhost:8787/api/v1/assets/download?token=${mockToken}`,
     expires_in: '24 hours'
   });
 });
 
-### License Tiers
-- **Individual** : Personal use, single project
-- **Indie Team** : Small teams, commercial use
-- **AAA Studio** : Large studios, unlimited use
+### License Tiers (Per Product Pricing)
+- **Individual**: Personal use, single project (price varies per product)
+- **Indie Team**: Small teams, commercial use (price varies per product)
+- **AAA Studio**: Large studios, unlimited use (price varies per product)
+
+Each product has its own pricing for each license tier, similar to Sketchfab or FAB marketplace.
 
 ### Environment Variables
 - `CREEM_API_KEY`: Creem API key for checkout creation
@@ -506,7 +524,7 @@ wrangler secret put SUPABASE_URL
 wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 ```
 
-### Frontend Environment Variables (Next.js)
+### Frontend Environment Variables (Astro)
 ```bash
 # API Endpoints
 NEXT_PUBLIC_API_URL=https://api.mescriptlabs.com
@@ -518,31 +536,31 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 
 ---
 
-## 6. Frontend Routing Structure
+## 6. Frontend Routing Structure (Astro)
 
 ### Page Routes
 ```
-/                          - Home page
-/about                     - About studio
-/portfolio                 - Portfolio gallery
-/contact                   - Contact form
-/marketplace              - 3D asset marketplace
-/sponsorships              - Funding & sponsorship goals
-/admin                     - Admin panel (protected)
-/admin/login              - Admin login
+/                          - Home page (index.astro)
+/about                     - About studio (about.astro)
+/portfolio                 - Portfolio gallery (portfolio.astro)
+/contact                   - Contact form (contact.astro)
+/marketplace              - 3D asset marketplace (marketplace.astro)
+/sponsorships              - Funding & sponsorship goals (sponsorships.astro)
+/admin                     - Admin panel (admin.astro)
+/admin/login              - Admin login (admin/login.astro)
 ```
 
 ### Dynamic Routes
 ```
-/portfolio/[id]           - Portfolio item detail
-/marketplace/[id]         - Product detail page
-/sponsorships/[id]        - Sponsorship goal detail
+/portfolio/[id]           - Portfolio item detail (portfolio/[id].astro)
+/marketplace/[id]         - Product detail page (marketplace/[id].astro)
+/sponsorships/[id]        - Sponsorship goal detail (sponsorships/[id].astro)
 ```
 
 ### Route Groups
-- `(public)`: Publicly accessible pages
-- `(protected)`: Authentication required
-- `(admin)`: Admin role required
+- Astro uses file-based routing with no route groups needed
+- All pages in src/pages/ are publicly accessible by default
+- Protected routes require server-side authentication checks
 
 ---
 
@@ -613,9 +631,9 @@ wrangler deploy --env preview
 ### Cloudflare Pages Deployment (Frontend)
 - Connect GitHub repository to Cloudflare Pages
 - Configure build settings:
-  - Framework: Next.js
+  - Framework: Astro
   - Build command: `npm run build`
-  - Output directory: `.next`
+  - Output directory: `dist`
 - Auto-deploy on push to main branch
 - Preview deployments on pull requests
 
@@ -671,7 +689,7 @@ Cloudflare Workers has no cold start issues, so no health check cron is required
 ## 12. Performance Optimization
 
 ### Image Optimization
-- Next.js Image component for automatic optimization
+- Astro Image component for automatic optimization
 - WebP format with fallback to JPEG
 - Lazy loading for below-fold images
 - Responsive images with srcset
@@ -712,17 +730,17 @@ Responsive YouTube video embed with lazy loading.
 
 ### Backend Setup
 ```
-Initialize FastAPI in /apps/backend with CORS middleware, /health endpoint, and Creem pricing utility. Use Pydantic v2 and python-dotenv.
+Initialize Cloudflare Workers in /apps/backend with itty-router, CORS middleware, /health endpoint, and Creem pricing utility. Use TypeScript and wrangler.toml configuration.
 ```
 
 ### Asset Streaming
 ```
-Create GET /api/v1/assets/download/{asset_id} using httpx.AsyncClient to stream from GitHub releases with 8KB chunks. Handle 404s gracefully.
+Create GET /api/v1/assets/download using fetch API to stream from GitHub releases with proper headers. Handle 404s gracefully.
 ```
 
 ### Marketplace UI
 ```
-Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers, and CheckoutModal integration.
+Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers, and CheckoutModal integration using Astro components.
 ```
 
 ---
@@ -781,7 +799,7 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 - No health check cron needed (Cloudflare Workers has no cold starts)
 
 ### Phase 7: Frontend Foundation
-- Initialize Next.js App Router in `apps/web`
+- Initialize Astro in `apps/web`
 - Set up Tailwind CSS with dark theme (#0B0C10)
 - Configure environment variables
 
@@ -798,7 +816,7 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 ### Phase 10: Frontend Deployment
 - Deploy to Cloudflare Pages
 - Connect GitHub repository to Cloudflare Pages
-- Configure build settings for Next.js
+- Configure build settings for Astro
 - Configure custom domain (if available)
 
 ### Phase 11: Testing & Verification
@@ -866,33 +884,33 @@ Begin with **Phase 1 (Supabase schema)** since you already have the account. Thi
 
 ### Phase 7: Frontend Foundation (7 tasks)
 39. Create apps/web directory structure
-40. Initialize Next.js App Router project (`npx create-next-app@latest`)
+40. Initialize Astro project (`npm create astro@latest`)
 41. Install Tailwind CSS and configure dark theme (#0B0C10)
-42. Configure next.config.ts with output: 'export'
-43. Set up environment variables (.env.local)
+42. Configure astro.config.mjs with adapter for Cloudflare Pages
+43. Set up environment variables (.env)
 44. Create src/lib/api.ts for fetch wrappers
 45. Create src/lib/supabase.ts for browser-safe Supabase client
 
 ### Phase 8: Frontend Components (4 tasks)
-46. Create src/components/ui/ directory for base components
-47. Build SketchfabViewer.tsx with iframe embed
-48. Build CheckoutModal.tsx with tier/format selection
-49. Build YouTubeEmbed.tsx with lazy loading
+46. Create src/components/ directory for base components
+47. Build SketchfabViewer.astro with iframe embed
+48. Build CheckoutModal.astro with tier/format selection
+49. Build YouTubeEmbed.astro with lazy loading
 
 ### Phase 9: Frontend Pages (7 tasks)
-50. Create src/app/(public)/page.tsx (Home)
-51. Create src/app/(public)/about/page.tsx
-52. Create src/app/(public)/portfolio/page.tsx with gallery
-53. Create src/app/(public)/contact/page.tsx with form
-54. Create src/app/marketplace/page.tsx with grid layout
-55. Create src/app/sponsorships/page.tsx with goals
-56. Create src/app/admin/page.tsx (protected)
+50. Create src/pages/index.astro (Home)
+51. Create src/pages/about.astro
+52. Create src/pages/portfolio.astro with gallery
+53. Create src/pages/contact.astro with form
+54. Create src/pages/marketplace.astro with grid layout
+55. Create src/pages/sponsorships.astro with goals
+56. Create src/pages/admin.astro (protected)
 
 ### Phase 10: Deployment (6 tasks)
 57. Deploy backend to Cloudflare Workers (`wrangler deploy`)
 58. Configure webhook URL in Creem dashboard with Workers URL
 59. Connect GitHub repo to Cloudflare Pages
-60. Configure Cloudflare Pages build settings (Next.js)
+60. Configure Cloudflare Pages build settings (Astro)
 61. Deploy frontend to Cloudflare Pages
 62. Configure custom domain (if available)
 
