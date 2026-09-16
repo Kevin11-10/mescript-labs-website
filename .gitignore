@@ -25,6 +25,7 @@ yarn-error.log*
 .env
 .env*.local
 .dev.vars
+.dev.vars.examples
 
 # IDE
 .vscode/
@@ -43,3 +44,7 @@ yarn-error.log*
 # Logs
 logs/
 *.log
+
+#hugging face
+ /hf-space
+apps/hf-space/

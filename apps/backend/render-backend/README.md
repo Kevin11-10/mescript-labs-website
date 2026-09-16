@@ -11,7 +11,7 @@ Start locally
 2. Run: `npm start`
 
 Deploy to Render
-1. Create a new Web Service in Render, connect to this repo path `apps/render-backend`.
+1. Create a new Web Service in Render, connect to this repo path `apps/backend/render-backend`.
 2. Set Build Command: `npm ci` and Start Command: `npm start`.
 3. Add environment variables `HUGGINGFACE_API_KEY` and `HUGGINGFACE_MODEL` in Render dashboard.
 
