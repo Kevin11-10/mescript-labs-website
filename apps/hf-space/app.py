@@ -42,4 +42,5 @@ with gr.Blocks() as demo:
     generate_btn.click(generate_draft, inputs=[prompt, context], outputs=[output])
 
 if __name__ == '__main__':
-    demo.launch(server_name='0.0.0.0', server_port=7860)
+    # On Hugging Face Spaces, ensure no share link is created and do not open a browser.
+    demo.launch(server_name='0.0.0.0', server_port=7860, share=False, inbrowser=False, prevent_thread_lock=True)
