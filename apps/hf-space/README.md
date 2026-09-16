@@ -1,3 +1,15 @@
+---
+title: Mescript Labs AI Draft Prototype
+emoji: "🤖"
+colorFrom: "purple-700"
+colorTo: "purple-500"
+sdk: gradio
+sdk_version: "3.50"
+python_version: "3.11"
+app_file: app.py
+pinned: false
+---
+
 Mescript Labs — AI Draft Prototype (Hugging Face Space)
 
 This is a lightweight Gradio-based prototype intended to be deployed as a Hugging Face Space to serve as a predictable AI fallback for testing and local development.
