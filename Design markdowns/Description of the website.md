@@ -4,8 +4,8 @@
 Monorepo architecture with Astro frontend, Render backend, and Hugging Face Spaces AI hosting. The frontend is deployed on Cloudflare for static/site delivery and CDN performance, the backend runs on Render for API, webhooks, and orchestration, and the AI model is hosted on Hugging Face Spaces to avoid Cloudflare runtime limits and keep the inference flow separate from the site frontend. The platform supports a self-hosted 3D marketplace using Cloudflare R2 storage and a custom model embed viewer, along with Creem payments, GitHub asset delivery, and Supabase for data persistence.
 
 ### Architecture Update
-- Frontend: Cloudflare Pages or Cloudflare Workers for the Astro site and static assets
-- Backend: Render service for API logic, webhooks, auth, Supabase access, GitHub access, and AI proxy calls
+- Frontend: Cloudflare Worker deployment for the Astro site at https://app.mescriptlabs.workers.dev
+- Backend: Render service for API logic, webhooks, auth, Supabase access, GitHub access, and AI proxy calls (when converted to a Node runtime)
 - AI host: Hugging Face Spaces for model inference and prompt processing
 - Repository: One GitHub monorepo, but each app deploys to a different provider
 
@@ -730,6 +730,35 @@ wrangler deploy
 - Use a custom embed viewer to render the model directly in the browser
 - Features: lazy loading, orbit controls, auto-rotate, lighting presets, and direct CDN delivery
 - Best for: asset ownership, no third-party embed dependency, and lower external platform lock-in
+
+### File Upload API (R2 + Product Metadata)
+- Upload flow overview:
+  1. Client requests upload URLs from the backend: `POST /api/v1/uploads/request` with desired `filename` and `format` (`fbx`, `zip`, `glb`).
+  2. Backend returns a signed upload URL (R2 PUT/POST) and an upload `id`.
+  3. Client uploads the file directly to Cloudflare R2 using the signed URL.
+  4. Client notifies the backend `POST /api/v1/uploads/complete` with the upload `id` and product metadata (title, thumbnail, license tiers).
+  5. Backend validates the file, persists `r2_model_key` / `r2_thumbnail_key` to the `products` row in Supabase and optionally triggers AI metadata generation.
+
+- API endpoints (recommended):
+  - `POST /api/v1/uploads/request` — returns signed upload URL(s) and upload id.
+  - `POST /api/v1/uploads/complete` — finalize upload, validate, and attach to product metadata.
+  - `GET /api/v1/uploads/status?uploadId=...` — optional status polling.
+
+- Expected backend responsibilities:
+  - Generate short-lived signed R2 URLs using `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` or R2-compatible signed URL flow.
+  - Validate uploaded file size and mime type, create thumbnails for GLB when possible, and write metadata to Supabase.
+  - Provide `model_url` (public or signed) to the frontend product metadata for the `CustomModelViewer`.
+
+- Required env vars for uploads and streaming (add to `apps/backend/.dev.vars.example` and Cloudflare/Render env settings):
+  - `R2_ACCOUNT_ID` — Cloudflare account id
+  - `R2_ACCESS_KEY_ID` — R2 access key id
+  - `R2_SECRET_ACCESS_KEY` — R2 secret
+  - `R2_BUCKET_NAME` — bucket/container name (e.g., `mescript-models`)
+  - `R2_PUBLIC_URL` — optional CDN base URL for public assets
+  - `MODEL_VIEWER_BASE_URL` — base path for model viewer routes
+
+Notes:
+- The backend may either sign direct uploads (preferred) or proxy uploads through a Node server on Render if stricter validation is required. Keep `GITHUB_ASSET_REPO` as a fallback for legacy GitHub release-based assets.
 
 ### YouTube Videos
 - Upload videos to YouTube (unlisted option)

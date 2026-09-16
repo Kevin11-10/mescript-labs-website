@@ -146,6 +146,20 @@ npm run deploy
 ### Assets
 - `GET /api/v1/assets/download?token={token}` - Download asset with token
 
+### File Uploads (R2)
+- `POST /api/v1/uploads/request` — Request signed upload URL(s) for `fbx`, `zip` (obj + textures), or `glb` files. Backend returns an upload `id` and a short-lived signed URL to upload directly to Cloudflare R2.
+- `POST /api/v1/uploads/complete` — Notify backend the upload finished; backend validates file, creates thumbnails if needed, and writes `r2_model_key` / `model_url` metadata to the `products` table in Supabase.
+
+Required backend env vars for uploads (add to `apps/backend/.dev.vars` or Cloudflare secrets):
+- `R2_ACCOUNT_ID`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_BUCKET_NAME`
+- `R2_PUBLIC_URL` (optional)
+
+Notes:
+- The frontend `CustomModelViewer` uses `model_url` for streaming GLB; the marketplace layout keeps the Sketchfab-style embed layout but sources the embed from `model_url`/r2 keys.
+
 ### Mock (for testing)
 - `POST /mock/simulate-buy` - Simulate purchase without real payment
 
