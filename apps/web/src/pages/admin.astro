@@ -1,0 +1,536 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCurrentUser, getProducts, getSponsorshipGoals, signInAdmin, signOutAdmin, supabase } from '../lib/supabase';
+
+const currentUser = await getCurrentUser();
+const adminFallback = !!currentUser || !supabase;
+const productRows = await getProducts();
+const sponsorshipRows = await getSponsorshipGoals();
+---
+
+<Layout title="Admin Panel - Mescript Labs">
+  <div class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
+              <a href="/about" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
+              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+              <a href="/marketplace" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
+              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
+              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+              <a href="/admin" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Admin</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Admin Section -->
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl sm:text-5xl font-bold mb-8 text-accent-cyan">Admin Panel</h1>
+        
+        <!-- Admin Login Form (shown when not authenticated) -->
+        <div id="login-section" class={`${currentUser ? 'hidden' : ''} glassmorphism rounded-lg p-8 max-w-md mx-auto`}>
+          <h2 class="text-2xl font-bold mb-6">Admin Login</h2>
+          <form id="login-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Email</label>
+              <input 
+                type="email" 
+                name="email" 
+                required
+                class="w-full bg-background border border-gray-700 rounded-md p-3 text-text-primary focus:border-accent-cyan focus:outline-none"
+                placeholder="admin@mescriptlabs.com"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-2">Password</label>
+              <input 
+                type="password" 
+                name="password" 
+                required
+                class="w-full bg-background border border-gray-700 rounded-md p-3 text-text-primary focus:border-accent-cyan focus:outline-none"
+                placeholder="••••••••"
+              />
+            </div>
+            
+            <button 
+              type="submit"
+              class="w-full bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-3 px-4 rounded-md transition"
+            >
+              Login
+            </button>
+          </form>
+          {!supabase && (
+            <p class="mt-4 text-xs text-text-secondary">
+              Supabase is not configured yet, so demo auth is available with admin@mescriptlabs.com / admin123.
+            </p>
+          )}
+        </div>
+
+        <!-- Admin Dashboard (shown when authenticated) -->
+        <div id="dashboard-section" class={`${currentUser ? '' : 'hidden'}`}>
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-accent-cyan">Welcome, {currentUser?.email ?? 'Admin'}</h2>
+            <button id="logout-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-md transition">
+              Logout
+            </button>
+          </div>
+
+          <!-- Stats Overview -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="glassmorphism rounded-lg p-6">
+              <h3 class="text-lg font-bold mb-2">Total Sales</h3>
+              <p class="text-3xl font-bold text-accent-cyan">$12,450</p>
+              <p class="text-sm text-text-secondary">+15% from last month</p>
+            </div>
+            <div class="glassmorphism rounded-lg p-6">
+              <h3 class="text-lg font-bold mb-2">Active Products</h3>
+              <p class="text-3xl font-bold text-accent-cyan">{productRows.length}</p>
+              <p class="text-sm text-text-secondary">From Supabase catalog</p>
+            </div>
+            <div class="glassmorphism rounded-lg p-6">
+              <h3 class="text-lg font-bold mb-2">Total Downloads</h3>
+              <p class="text-3xl font-bold text-accent-cyan">1,234</p>
+              <p class="text-sm text-text-secondary">+8% from last month</p>
+            </div>
+            <div class="glassmorphism rounded-lg p-6">
+              <h3 class="text-lg font-bold mb-2">Sponsorship Total</h3>
+              <p class="text-3xl font-bold text-accent-cyan">${sponsorshipRows.reduce((sum, goal) => sum + Number(goal.current_amount || 0), 0).toLocaleString()}</p>
+              <p class="text-sm text-text-secondary">{sponsorshipRows.length} active goals</p>
+            </div>
+          </div>
+
+          <!-- Admin Tabs -->
+          <div class="glassmorphism rounded-lg">
+            <div class="border-b border-gray-700 overflow-x-auto">
+              <nav class="flex min-w-max space-x-6 px-6">
+                <button class="tab-btn py-4 border-b-2 border-accent-cyan text-accent-cyan whitespace-nowrap" data-tab="products">Products</button>
+                <button class="tab-btn py-4 border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap" data-tab="transactions">Transactions</button>
+                <button class="tab-btn py-4 border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap" data-tab="users">Users</button>
+                <button class="tab-btn py-4 border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap" data-tab="sponsorships">Sponsorships</button>
+                <button class="tab-btn py-4 border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap" data-tab="content">Content</button>
+                <button class="tab-btn py-4 border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap" data-tab="ai">AI Ops</button>
+              </nav>
+            </div>
+
+            <!-- Products Tab -->
+            <div id="products-tab" class="tab-content p-6">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Product Management</h3>
+                <button class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">
+                  Add New Product
+                </button>
+              </div>
+              
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b border-gray-700">
+                      <th class="text-left py-3 px-4">Name</th>
+                      <th class="text-left py-3 px-4">Category</th>
+                      <th class="text-left py-3 px-4">Price</th>
+                      <th class="text-left py-3 px-4">Status</th>
+                      <th class="text-left py-3 px-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productRows.length === 0 ? (
+                      <tr>
+                        <td colspan="5" class="py-4 px-4 text-text-secondary">No products available yet.</td>
+                      </tr>
+                    ) : (
+                      productRows.map((product) => (
+                        <tr class="border-b border-gray-700">
+                          <td class="py-3 px-4">{product.title}</td>
+                          <td class="py-3 px-4">{product.category}</td>
+                          <td class="py-3 px-4">${Number(product.individual_price ?? 0).toFixed(2)}</td>
+                          <td class="py-3 px-4"><span class="bg-green-500 text-black text-xs px-2 py-1 rounded">{product.is_active ? 'Active' : 'Inactive'}</span></td>
+                          <td class="py-3 px-4">
+                            <button class="text-accent-cyan hover:underline mr-2">Edit</button>
+                            <button class="text-red-500 hover:underline">Delete</button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Transactions Tab -->
+            <div id="transactions-tab" class="tab-content p-6 hidden">
+              <h3 class="text-xl font-bold mb-6">Transaction History</h3>
+              
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b border-gray-700">
+                      <th class="text-left py-3 px-4">Transaction ID</th>
+                      <th class="text-left py-3 px-4">Customer</th>
+                      <th class="text-left py-3 px-4">Amount</th>
+                      <th class="text-left py-3 px-4">Status</th>
+                      <th class="text-left py-3 px-4">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-gray-700">
+                      <td class="py-3 px-4">TXN_001</td>
+                      <td class="py-3 px-4">john@example.com</td>
+                      <td class="py-3 px-4">$25.00</td>
+                      <td class="py-3 px-4"><span class="bg-green-500 text-black text-xs px-2 py-1 rounded">Completed</span></td>
+                      <td class="py-3 px-4">2024-01-15</td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                      <td class="py-3 px-4">TXN_002</td>
+                      <td class="py-3 px-4">jane@example.com</td>
+                      <td class="py-3 px-4">$15.00</td>
+                      <td class="py-3 px-4"><span class="bg-yellow-500 text-black text-xs px-2 py-1 rounded">Pending</span></td>
+                      <td class="py-3 px-4">2024-01-14</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users-tab" class="tab-content p-6 hidden">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">User Management</h3>
+                <button class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">
+                  Add New User
+                </button>
+              </div>
+              
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b border-gray-700">
+                      <th class="text-left py-3 px-4">Email</th>
+                      <th class="text-left py-3 px-4">Role</th>
+                      <th class="text-left py-3 px-4">Last Login</th>
+                      <th class="text-left py-3 px-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-gray-700">
+                      <td class="py-3 px-4">admin@mescriptlabs.com</td>
+                      <td class="py-3 px-4"><span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">Admin</span></td>
+                      <td class="py-3 px-4">2024-01-15 10:30</td>
+                      <td class="py-3 px-4">
+                        <button class="text-accent-cyan hover:underline mr-2">Edit</button>
+                        <button class="text-red-500 hover:underline">Delete</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Sponsorships Tab -->
+            <div id="sponsorships-tab" class="tab-content p-6 hidden">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Sponsorship Goals</h3>
+                <button class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">
+                  Add New Goal
+                </button>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {sponsorshipRows.length === 0 ? (
+                  <div class="border border-gray-700 rounded-lg p-4 text-text-secondary">No sponsorship goals available.</div>
+                ) : (
+                  sponsorshipRows.map((goal) => {
+                    const percent = Math.min(100, Math.max(0, ((Number(goal.current_amount || 0) / Math.max(Number(goal.target_amount || 1), 1)) * 100))); 
+                    return (
+                      <div class="border border-gray-700 rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                          <h4 class="font-bold">{goal.title}</h4>
+                          <span class="bg-green-500 text-black text-xs px-2 py-1 rounded">{goal.status}</span>
+                        </div>
+                        <p class="text-sm text-text-secondary mb-2">${Number(goal.current_amount || 0).toLocaleString()} / ${Number(goal.target_amount || 0).toLocaleString()}</p>
+                        <div class="w-full bg-gray-700 rounded-full h-2 mb-4">
+                          <div class="bg-accent-cyan h-2 rounded-full" style={`width: ${percent}%`}></div>
+                        </div>
+                        <div class="flex space-x-2">
+                          <button class="text-accent-cyan hover:underline text-sm">Edit</button>
+                          <button class="text-red-500 hover:underline text-sm">Delete</button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            <!-- Content Tab -->
+            <div id="content-tab" class="tab-content p-6 hidden">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                  <h3 class="text-xl font-bold mb-4">Content Management</h3>
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium mb-2">Portfolio/Marketing JSON</label>
+                      <textarea class="w-full h-60 bg-background border border-gray-700 rounded-md p-3 text-text-primary focus:border-accent-cyan focus:outline-none" placeholder="{ \"title\": \"New featured project\", ... }"></textarea>
+                    </div>
+                    <div class="flex gap-3">
+                      <button class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">Preview Draft</button>
+                      <button class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition">Save to GitHub</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 class="text-xl font-bold mb-4">Repository Sync</h3>
+                  <div class="space-y-4">
+                    <div class="border border-gray-700 rounded-lg p-4">
+                      <p class="text-sm text-text-secondary mb-1">Source repo</p>
+                      <p class="font-medium text-white">MescriptLabs/mescript-labs.com</p>
+                    </div>
+                    <div class="border border-gray-700 rounded-lg p-4">
+                      <p class="text-sm text-text-secondary mb-1">Last sync</p>
+                      <p class="font-medium text-white">2 minutes ago</p>
+                    </div>
+                    <div class="border border-gray-700 rounded-lg p-4">
+                      <p class="text-sm text-text-secondary mb-1">Approval mode</p>
+                      <p class="font-medium text-accent-cyan">Manual approval required</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Ops Tab -->
+            <div id="ai-tab" class="tab-content p-6 hidden">
+              <h3 class="text-xl font-bold mb-6">AI Operations & Approval Queue</h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="border border-gray-700 rounded-lg p-4">
+                  <h4 class="font-bold mb-3">Generate a marketing draft</h4>
+                  <textarea id="ai-prompt" class="w-full h-32 bg-background border border-gray-700 rounded-md p-3 text-text-primary focus:border-accent-cyan focus:outline-none" placeholder="Write a marketing draft for the new 3D collection, sponsorship update, or product launch..."></textarea>
+                  <div class="mt-4 flex gap-3">
+                    <button id="generate-ai-btn" class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">Generate Draft</button>
+                    <button id="approve-ai-btn" class="bg-green-500 hover:bg-green-400 text-black font-bold py-2 px-4 rounded-md transition">Approve</button>
+                  </div>
+                  <div id="ai-status" class="mt-4 text-sm text-text-secondary">No draft generated yet.</div>
+                </div>
+                <div class="border border-gray-700 rounded-lg p-4">
+                  <h4 class="font-bold mb-3">Safety Controls</h4>
+                  <div class="space-y-3 text-sm text-text-secondary">
+                    <div class="flex items-center justify-between">
+                      <span>Approval required</span>
+                      <span class="text-accent-cyan">On</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span>Rate limiting</span>
+                      <span class="text-accent-cyan">Active</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span>Audit logging</span>
+                      <span class="text-accent-cyan">Enabled</span>
+                    </div>
+                  </div>
+                  <div id="ai-result" class="mt-6 hidden rounded-md border border-gray-700 bg-background p-4 text-sm text-text-primary">
+                    <h5 class="font-bold text-accent-cyan mb-2">Draft preview</h5>
+                    <div id="ai-result-body"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto text-center">
+        <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8787';
+    let currentDraft = null;
+
+    const aiPrompt = document.getElementById('ai-prompt');
+    const aiStatus = document.getElementById('ai-status');
+    const aiResult = document.getElementById('ai-result');
+    const aiResultBody = document.getElementById('ai-result-body');
+    const generateAiBtn = document.getElementById('generate-ai-btn');
+    const approveAiBtn = document.getElementById('approve-ai-btn');
+
+    // Tab switching
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        
+        // Update button styles
+        tabBtns.forEach(b => {
+          b.classList.remove('border-accent-cyan', 'text-accent-cyan');
+          b.classList.add('border-transparent', 'text-gray-400');
+        });
+        btn.classList.remove('border-transparent', 'text-gray-400');
+        btn.classList.add('border-accent-cyan', 'text-accent-cyan');
+        
+        // Show corresponding tab content
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+        });
+        const activeTab = document.getElementById(`${tabId}-tab`);
+        if (activeTab) activeTab.classList.remove('hidden');
+      });
+    });
+
+    // Login form handling
+    const loginForm = document.getElementById('login-form');
+    const loginSection = document.getElementById('login-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+    const logoutButton = document.getElementById('logout-button');
+
+    const showDashboard = () => {
+      if (loginSection) loginSection.classList.add('hidden');
+      if (dashboardSection) dashboardSection.classList.remove('hidden');
+    };
+
+    const hideDashboard = () => {
+      if (loginSection) loginSection.classList.remove('hidden');
+      if (dashboardSection) dashboardSection.classList.add('hidden');
+    };
+
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(loginForm);
+        const email = String(formData.get('email') || '');
+        const password = String(formData.get('password') || '');
+
+        try {
+          if (!window.__SUPABASE_CONFIGURED__) {
+            if (email === 'admin@mescriptlabs.com' && password === 'admin123') {
+              showDashboard();
+              return;
+            }
+            throw new Error('Invalid credentials');
+          }
+
+          await window.__SUPABASE_SIGN_IN__(email, password);
+          showDashboard();
+        } catch (error) {
+          alert(error instanceof Error ? error.message : 'Invalid credentials');
+        }
+      });
+    }
+
+    if (logoutButton) {
+      logoutButton.addEventListener('click', async () => {
+        try {
+          if (window.__SUPABASE_SIGN_OUT__) {
+            await window.__SUPABASE_SIGN_OUT__();
+          }
+          hideDashboard();
+        } catch (error) {
+          console.error('Logout failed:', error);
+          hideDashboard();
+        }
+      });
+    }
+
+    if (generateAiBtn) {
+      generateAiBtn.addEventListener('click', async () => {
+        const prompt = aiPrompt ? aiPrompt.value.trim() : '';
+        if (!prompt) {
+          if (aiStatus) aiStatus.textContent = 'Enter a prompt before generating a draft.';
+          return;
+        }
+
+        if (aiStatus) aiStatus.textContent = 'Generating draft...';
+
+        try {
+          const response = await fetch(`${apiBaseUrl}/api/v1/ai/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, context: 'Mescript Labs admin marketing workflow', actionType: 'content' })
+          });
+
+          const draft = await response.json();
+          if (!response.ok) {
+            throw new Error(draft?.error || 'Failed to generate AI draft');
+          }
+
+          currentDraft = draft;
+          if (aiStatus) aiStatus.textContent = `Draft generated using ${draft.model || 'local fallback'} and is pending approval.`;
+          if (aiResult && aiResultBody) {
+            aiResult.classList.remove('hidden');
+            aiResultBody.innerHTML = `
+              <div class="mb-3"><strong class="text-accent-cyan">Title:</strong> ${draft.title || 'Untitled draft'}</div>
+              <div class="mb-3"><strong class="text-accent-cyan">Summary:</strong> ${draft.summary || ''}</div>
+              <div class="mb-3 whitespace-pre-line"><strong class="text-accent-cyan">Body:</strong> ${draft.body || ''}</div>
+              <div><strong class="text-accent-cyan">Suggestions:</strong>
+                <ul class="list-disc ml-5 mt-2 space-y-1">
+                  ${(draft.suggestions || []).map(item => `<li>${item}</li>`).join('')}
+                </ul>
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error('AI generation failed:', error);
+          if (aiStatus) aiStatus.textContent = error instanceof Error ? error.message : 'AI generation failed.';
+        }
+      });
+    }
+
+    if (approveAiBtn) {
+      approveAiBtn.addEventListener('click', async () => {
+        if (!currentDraft) {
+          if (aiStatus) aiStatus.textContent = 'Generate a draft before approving it.';
+          return;
+        }
+
+        if (aiStatus) aiStatus.textContent = 'Approving AI draft...';
+
+        try {
+          const response = await fetch(`${apiBaseUrl}/api/v1/ai/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: currentDraft.id, approved: true })
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data?.error || 'Failed to approve AI draft');
+          }
+
+          currentDraft = { ...currentDraft, status: 'approved' };
+          if (aiStatus) aiStatus.textContent = data.message || 'AI content approved.';
+        } catch (error) {
+          console.error('AI approval failed:', error);
+          if (aiStatus) aiStatus.textContent = error instanceof Error ? error.message : 'AI approval failed.';
+        }
+      });
+    }
+
+    window.__SUPABASE_CONFIGURED__ = !!window.__SUPABASE_CONFIGURED__ || !!document.querySelector('meta[name="supabase-configured"]');
+    window.__SUPABASE_SIGN_IN__ = async (email, password) => {
+      const { signInAdmin } = await import('../lib/supabase');
+      return signInAdmin(email, password);
+    };
+    window.__SUPABASE_SIGN_OUT__ = async () => {
+      const { signOutAdmin } = await import('../lib/supabase');
+      return signOutAdmin();
+    };
+  </script>
+</Layout>

@@ -1,0 +1,119 @@
+---
+import { createCheckout } from '../lib/api';
+
+interface Props {
+  productId: string;
+  productTitle: string;
+  individualPrice: number;
+  indieTeamPrice: number;
+  aaaStudioPrice: number;
+  formats: string[];
+}
+
+const { 
+  productId, 
+  productTitle,
+  individualPrice,
+  indieTeamPrice,
+  aaaStudioPrice,
+  formats = ['blend', 'fbx', 'obj']
+} = Astro.props;
+---
+
+<div id="checkout-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-card rounded-lg p-6 max-w-md w-full mx-4 glassmorphism">
+    <h2 class="text-2xl font-bold mb-4 text-accent-cyan">Purchase {productTitle}</h2>
+    
+    <form id="checkout-form" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-2">License Tier</label>
+        <select id="license-tier" class="w-full bg-background border border-gray-700 rounded-md p-2 text-text-primary">
+          <option value="individual">Individual - ${individualPrice.toFixed(2)}</option>
+          <option value="indie_team">Indie Team - ${indieTeamPrice.toFixed(2)}</option>
+          <option value="aaa_studio">AAA Studio - ${aaaStudioPrice.toFixed(2)}</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium mb-2">Format</label>
+        <select id="format" class="w-full bg-background border border-gray-700 rounded-md p-2 text-text-primary">
+          {formats.map(format => (
+            <option value={format}>{format.toUpperCase()}</option>
+          ))}
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium mb-2">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          required
+          class="w-full bg-background border border-gray-700 rounded-md p-2 text-text-primary"
+          placeholder="your@email.com"
+        />
+      </div>
+      
+      <div class="flex space-x-3">
+        <button 
+          type="button" 
+          id="close-modal"
+          class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          class="flex-1 bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition"
+        >
+          Proceed to Checkout
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script define:vars={{ productId }}>
+  const modal = document.getElementById('checkout-modal') as HTMLDivElement;
+  const form = document.getElementById('checkout-form') as HTMLFormElement;
+  const closeBtn = document.getElementById('close-modal') as HTMLButtonElement;
+
+  // Show modal when called
+  (window as any).showCheckoutModal = (selectedProductId = productId, selectedProductTitle = productTitle) => {
+    modal.dataset.productId = String(selectedProductId);
+    modal.dataset.productTitle = String(selectedProductTitle);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  // Close modal
+  closeBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  });
+
+  // Handle form submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const currentProductId = modal.dataset.productId || productId;
+    const licenseTier = (document.getElementById('license-tier') as HTMLSelectElement).value;
+    const format = (document.getElementById('format') as HTMLSelectElement).value;
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+
+    try {
+      const data = await createCheckout({
+        product_id: String(currentProductId),
+      });
+
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      } else {
+        alert('Failed to create checkout');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to create checkout');
+    }
+  });
+</script>

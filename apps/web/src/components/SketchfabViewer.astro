@@ -1,0 +1,47 @@
+---
+interface Props {
+  modelUid: string;
+  title?: string;
+  autostart?: boolean;
+  autospin?: boolean;
+  uiControls?: boolean;
+  uiInfos?: boolean;
+}
+
+const { 
+  modelUid, 
+  title = '3D Model Viewer',
+  autostart = false,
+  autospin = false,
+  uiControls = true,
+  uiInfos = true
+} = Astro.props;
+
+const params = new URLSearchParams();
+if (autostart) params.append('autostart', '1');
+if (autospin) params.append('autospin', '1');
+if (!uiControls) params.append('ui_controls', '0');
+if (!uiInfos) params.append('ui_infos', '0');
+
+const embedUrl = `https://sketchfab.com/models/${modelUid}/embed?${params.toString()}`;
+---
+
+<div class="sketchfab-viewer w-full h-96 rounded-lg overflow-hidden glassmorphism">
+  <iframe
+    src={embedUrl}
+    title={title}
+    frameborder="0"
+    allow="autoplay; fullscreen; vr"
+    class="w-full h-full"
+  ></iframe>
+</div>
+
+<style>
+  .sketchfab-viewer {
+    position: relative;
+  }
+  
+  .sketchfab-viewer iframe {
+    border: none;
+  }
+</style>

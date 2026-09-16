@@ -1,0 +1,11 @@
+name = "mescript-labs-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+ALLOWED_ORIGINS = "http://localhost:4321"
+GITHUB_ASSET_REPO = "MescriptLabs/private-assets"
+ALLOW_AI_OPS = "true"
+
+# Secret values must be supplied in a local .dev.vars file or via `wrangler secret put`.
+# Example local file: apps/backend/.dev.vars

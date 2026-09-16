@@ -1,0 +1,63 @@
+---
+interface Props {
+  modelUrl?: string;
+  modelUid?: string;
+  title?: string;
+  autostart?: boolean;
+  autospin?: boolean;
+  uiControls?: boolean;
+  uiInfos?: boolean;
+}
+
+const {
+  modelUrl = '',
+  modelUid = '',
+  title = '3D Model Viewer',
+  autostart = false,
+  autospin = false,
+  uiControls = true,
+  uiInfos = true,
+} = Astro.props;
+
+const hasModel = Boolean(modelUrl || modelUid);
+const resolvedModelUrl = modelUrl || (modelUid ? `https://example.com/models/${modelUid}` : '');
+---
+
+<div class="custom-model-viewer w-full h-96 rounded-lg overflow-hidden glassmorphism">
+  {hasModel ? (
+    <div class="flex h-full flex-col items-center justify-center gap-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-6 text-center">
+      <div class="text-5xl">3D</div>
+      <div>
+        <p class="text-xl font-bold text-accent-cyan">{title}</p>
+        <p class="mt-2 text-sm text-text-secondary">Cloudflare R2 self-hosted model</p>
+      </div>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <span class="rounded-full border border-accent-cyan px-3 py-1 text-xs uppercase tracking-wide text-accent-cyan">R2 asset</span>
+        <span class="rounded-full border border-gray-600 px-3 py-1 text-xs uppercase tracking-wide text-gray-200">Custom embed</span>
+      </div>
+      {resolvedModelUrl ? (
+        <a
+          href={resolvedModelUrl}
+          target="_blank"
+          rel="noreferrer"
+          class="inline-flex items-center rounded-md bg-accent-cyan px-4 py-2 text-sm font-bold text-black transition hover:bg-cyan-400"
+        >
+          Open model file
+        </a>
+      ) : null}
+    </div>
+  ) : (
+    <div class="flex h-full items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-6 text-center">
+      <div>
+        <p class="text-xl font-bold text-accent-cyan">Model preview unavailable</p>
+        <p class="mt-2 text-sm text-text-secondary">Upload the model to Cloudflare R2 and add a public URL to the product metadata.</p>
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  .custom-model-viewer {
+    position: relative;
+  }
+</style>

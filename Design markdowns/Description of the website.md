@@ -1,7 +1,82 @@
 # Mescript Labs Website - Technical Specification
 
 ## Overview
-Monorepo architecture with Astro frontend and Cloudflare Workers backend, deployed on Cloudflare. Supports 3D model marketplace via Sketchfab, Creem payments, GitHub asset delivery, and Supabase for data persistence.
+Monorepo architecture with Astro frontend, Render backend, and Hugging Face Spaces AI hosting. The frontend is deployed on Cloudflare for static/site delivery and CDN performance, the backend runs on Render for API, webhooks, and orchestration, and the AI model is hosted on Hugging Face Spaces to avoid Cloudflare runtime limits and keep the inference flow separate from the site frontend. The platform supports a self-hosted 3D marketplace using Cloudflare R2 storage and a custom model embed viewer, along with Creem payments, GitHub asset delivery, and Supabase for data persistence.
+
+### Architecture Update
+- Frontend: Cloudflare Pages or Cloudflare Workers for the Astro site and static assets
+- Backend: Render service for API logic, webhooks, auth, Supabase access, GitHub access, and AI proxy calls
+- AI host: Hugging Face Spaces for model inference and prompt processing
+- Repository: One GitHub monorepo, but each app deploys to a different provider
+
+This split is preferred because Cloudflare serverless functions have short execution limits and are not a good long-running inference runtime for model workloads, while Render is better suited for a persistent backend API and worker queue orchestration.
+
+### Render Cron Setup
+Use Render scheduled jobs to keep the AI service warm and trigger periodic health checks.
+
+```yaml
+services:
+  - type: cron
+    name: keep-ai-warm
+    env: node
+    schedule: "*/5 * * * *"
+    command: curl -fsS https://your-space-name.hf.space/health || exit 1
+```
+
+Recommended cron behavior:
+- Run every 5 minutes
+- Ping the HF Space health endpoint
+- Optionally ping a backend route such as `/api/v1/ai/health`
+- If the Space is asleep, the request wakes it up and reduces cold-start delay
+
+This is the safest free-tier pattern for a Hugging Face Spaces-based AI runtime without continuously burning compute or risking service shutdown.
+
+### AI Chat History Persistence
+Chat history may be stored directly in the repo for a lightweight internal admin dashboard, but it should live in a dedicated log directory rather than the app source tree.
+
+Recommended structure:
+```text
+.ai/
+  chat/
+    2026-09-15.md
+    2026-09-16.md
+```
+
+Recommended file format:
+```md
+# Mescript Labs AI Chat History
+
+## 2026-09-15 14:32:18 UTC
+
+### User
+Write a product launch summary for the premium 3D collection.
+
+### Assistant
+**Title:** Launching the Premium 3D Collection
+
+**Summary:**
+This collection introduces a premium bundle for creative teams shipping high-quality 3D assets...
+
+**Draft:**
+Mescript Labs is launching...
+```
+
+This format is easy to render in a chat-like UI and visually resembles Gemini / Copilot style conversations.
+
+### Safe Commit Pattern
+Immediate commit-to-repo is acceptable only for a dedicated history/log directory, not for the app source or user content folders. The safer pattern is:
+1. append the newest conversation to a session log file
+2. debounce writes to avoid excessive commits
+3. commit every 30-60 seconds or after a completed turn
+4. store the repo write token only in the backend, never in the browser
+
+Example workflow:
+```ts
+await fs.appendFile(' .ai/chat/2026-09-15.md', formattedContent, 'utf8');
+await gitCommit('docs: add AI chat transcript');
+```
+
+This is fine if the directory is intentionally dedicated to operational logs, but it should not auto-commit arbitrary working files or production code as part of the chat loop.
 
 ---
 
@@ -21,7 +96,7 @@ mescript-labs-monorepo/
 │   │   │   │   ├── sponsorships.astro # Funding & goals
 │   │   │   │   └── admin.astro      # Admin panel
 │   │   │   ├── components/          # Astro components
-│   │   │   │   ├── SketchfabViewer.astro
+│   │   │   │   ├── CustomModelViewer.astro
 │   │   │   │   ├── YouTubeEmbed.astro
 │   │   │   │   └── CheckoutModal.astro
 │   │   │   ├── lib/                 # Client utilities
@@ -46,7 +121,7 @@ mescript-labs-monorepo/
 │       │   ├── services/
 │       │   │   ├── github.ts
 │       │   │   ├── creem.ts
-│       │   │   ├── sketchfab.ts
+│       │   │   ├── r2.ts
 │       │   │   └── supabase.ts
 │       │   └── types/
 │       │       └── index.ts         # TypeScript types
@@ -218,7 +293,8 @@ CREATE TABLE products (
   indie_team_price DECIMAL(10, 2) NOT NULL,
   aaa_studio_price DECIMAL(10, 2) NOT NULL,
   currency TEXT DEFAULT 'USD',
-  sketchfab_model_uid TEXT,
+  r2_model_key TEXT,
+  r2_thumbnail_key TEXT,
   github_asset_id TEXT,
   thumbnail_url TEXT,
   metadata JSONB,
@@ -392,7 +468,7 @@ router.post('/webhooks/creem', async (request: Request) => {
       .update({ status: 'processed', processed_at: new Date().toISOString() })
       .eq('event_id', eventId);
 
-    const downloadLink = `https://mescriptlabs.com/api/v1/assets/download?token=${secureToken}`;
+    const downloadLink = `https://app.mescriptlabs.workers.dev/api/v1/assets/download?token=${secureToken}`;
     return Response.json({ status: 'success', download_link: downloadLink });
   }
 
@@ -480,7 +556,7 @@ router.post('/mock/simulate-buy', async (request: Request) => {
 - **Indie Team**: Small teams, commercial use (price varies per product)
 - **AAA Studio**: Large studios, unlimited use (price varies per product)
 
-Each product has its own pricing for each license tier, similar to Sketchfab or FAB marketplace.
+Each product has its own pricing for each license tier, similar to a premium 3D marketplace with self-hosted model files and viewer licensing.
 
 ### Environment Variables
 - `CREEM_API_KEY`: Creem API key for checkout creation
@@ -502,7 +578,7 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
 [vars]
-ALLOWED_ORIGINS = "https://mescriptlabs.com"
+ALLOWED_ORIGINS = "https://app.mescriptlabs.workers.dev"
 GITHUB_ASSET_REPO = "MescriptLabs/private-assets"
 ALLOW_AI_OPS = "true"
 
@@ -527,7 +603,7 @@ wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 ### Frontend Environment Variables (Astro)
 ```bash
 # API Endpoints
-NEXT_PUBLIC_API_URL=https://api.mescriptlabs.com
+NEXT_PUBLIC_API_URL=https://app.mescriplabs.workers.dev
 
 # Supabase (Public)
 NEXT_PUBLIC_SUPABASE_URL=https://xyz.supabase.co
@@ -617,15 +693,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 
 ---
 
-## 9. Deployment Configuration
+## 10. Deployment Configuration
 
 ### Cloudflare Workers Deployment
 ```bash
 # Deploy to Cloudflare Workers
 wrangler deploy
 
-# Preview deployment
-wrangler deploy --env preview
+# Workers will be deployed at: https://app.mescriplabs.workers.dev
 ```
 
 ### Cloudflare Pages Deployment (Frontend)
@@ -636,20 +711,25 @@ wrangler deploy --env preview
   - Output directory: `dist`
 - Auto-deploy on push to main branch
 - Preview deployments on pull requests
+- Custom domain: mescriptlabs.com (later)
 
-### No Health Check Cron Needed
-Cloudflare Workers has no cold start issues, so no health check cron is required. Workers are always ready to handle requests.
+### Architecture
+- Frontend: [app.mescriptlabs.workers.dev](https://app.mescriptlabs.workers.dev) (Cloudflare Workers / Pages frontend)
+- Backend: https://app.mescriptlabs.workers.dev (Cloudflare Workers)
+- API calls use absolute URL: https://app.mescriptlabs.workers.dev/api/v1/checkout/create
+- Webhook URL: https://app.mescriptlabs.workers.dev/webhooks/creem
+- CORS configured to allow requests from app.mescriptlabs.workers.dev
 
 ---
 
-## 10. Media Embedding
+## 11. Media Embedding
 
-### Sketchfab 3D Models
-- Upload models to Sketchfab
-- Get model UID from Sketchfab
-- Embed using iframe with model UID
-- Supports: .glb, .gltf, .obj, .fbx
-- Features: Auto-rotate, orbit controls, lighting
+### Cloudflare R2 Self-Hosted 3D Models
+- Upload .glb, .gltf, .obj, or .fbx files to a Cloudflare R2 bucket
+- Store a public or signed URL in product metadata
+- Use a custom embed viewer to render the model directly in the browser
+- Features: lazy loading, orbit controls, auto-rotate, lighting presets, and direct CDN delivery
+- Best for: asset ownership, no third-party embed dependency, and lower external platform lock-in
 
 ### YouTube Videos
 - Upload videos to YouTube (unlisted option)
@@ -665,7 +745,7 @@ Cloudflare Workers has no cold start issues, so no health check cron is required
 
 ---
 
-## 11. AI Integration (Auth K)
+## 12. AI Integration (Auth K)
 
 ### Capabilities
 - Content generation and organization
@@ -686,7 +766,7 @@ Cloudflare Workers has no cold start issues, so no health check cron is required
 
 ---
 
-## 12. Performance Optimization
+## 13. Performance Optimization
 
 ### Image Optimization
 - Astro Image component for automatic optimization
@@ -713,10 +793,10 @@ Cloudflare Workers has no cold start issues, so no health check cron is required
 
 ---
 
-## 13. Frontend Components
+## 14. Frontend Components
 
-### SketchfabViewer
-Interactive 3D model viewer using Sketchfab embeds.
+### CustomModelViewer
+Interactive 3D model viewer rendered from Cloudflare R2-hosted assets using a custom browser embed flow.
 
 ### CheckoutModal
 Modal for selecting license tier, format, and email before checkout.
@@ -726,7 +806,7 @@ Responsive YouTube video embed with lazy loading.
 
 ---
 
-## 14. AI Prompts for Development
+## 15. AI Prompts for Development
 
 ### Backend Setup
 ```
@@ -740,12 +820,12 @@ Create GET /api/v1/assets/download using fetch API to stream from GitHub release
 
 ### Marketplace UI
 ```
-Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers, and CheckoutModal integration using Astro components.
+Build marketplace page with dark theme (#0B0C10), grid layout, custom self-hosted 3D model viewers, and CheckoutModal integration using Astro components.
 ```
 
 ---
 
-## 15. Design System
+## 16. Design System
 
 ### Colors
 - Background: #0B0C10
@@ -764,7 +844,7 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 
 ---
 
-## 16. Implementation Roadmap
+## 17. Implementation Roadmap
 
 ### Phase 1: Supabase Setup (Do First)
 - Run complete SQL schema in Supabase SQL Editor
@@ -804,7 +884,7 @@ Build marketplace page with dark theme (#0B0C10), grid layout, Sketchfab viewers
 - Configure environment variables
 
 ### Phase 8: Frontend Components
-- Build SketchfabViewer component
+- Build CustomModelViewer component to load R2-hosted 3D assets
 - Build CheckoutModal component
 - Build YouTubeEmbed component
 
@@ -830,7 +910,7 @@ Begin with **Phase 1 (Supabase schema)** since you already have the account. Thi
 
 ---
 
-## 17. Detailed Step-by-Step Implementation Plan
+## 18. Detailed Step-by-Step Implementation Plan
 
 ### Phase 1: Supabase Setup (3 tasks)
 1. Enable UUID extension in Supabase SQL Editor
@@ -893,7 +973,7 @@ Begin with **Phase 1 (Supabase schema)** since you already have the account. Thi
 
 ### Phase 8: Frontend Components (4 tasks)
 46. Create src/components/ directory for base components
-47. Build SketchfabViewer.astro with iframe embed
+47. Build CustomModelViewer.astro to render Cloudflare R2-hosted 3D payloads
 48. Build CheckoutModal.astro with tier/format selection
 49. Build YouTubeEmbed.astro with lazy loading
 

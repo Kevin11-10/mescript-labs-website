@@ -1,0 +1,145 @@
+---
+import Layout from '../layouts/Layout.astro';
+import YouTubeEmbed from '../components/YouTubeEmbed.astro';
+---
+
+<Layout title="Portfolio - Mescript Labs">
+  <div class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
+              <a href="/about" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
+              <a href="/portfolio" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+              <a href="/marketplace" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
+              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
+              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Portfolio Section -->
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl sm:text-5xl font-bold mb-8 text-accent-cyan">Our Portfolio</h1>
+        <p class="text-xl text-text-secondary mb-12 max-w-2xl">
+          Explore our collection of 3D assets, environments, and character models crafted for various game genres and styles.
+        </p>
+
+        <!-- Portfolio Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Portfolio Item 1 -->
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🤖</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Sci-Fi Character Pack</h3>
+              <p class="text-text-secondary mb-4">Collection of futuristic character models with full rigging and animations.</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">Characters</span>
+                <span class="bg-accent-amber text-black text-xs px-2 py-1 rounded">Sci-Fi</span>
+              </div>
+              <YouTubeEmbed videoId="dQw4w9WgXcQ" title="Sci-Fi Character Pack Demo" />
+            </div>
+          </div>
+
+          <!-- Portfolio Item 2 -->
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🏢</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Urban Environment Set</h3>
+              <p class="text-text-secondary mb-4">Modular city buildings, street props, and urban scenery elements.</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">Environment</span>
+                <span class="bg-accent-amber text-black text-xs px-2 py-1 rounded">Urban</span>
+              </div>
+              <YouTubeEmbed videoId="dQw4w9WgXcQ" title="Urban Environment Demo" />
+            </div>
+          </div>
+
+          <!-- Portfolio Item 3 -->
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🌲</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Nature Environment Pack</h3>
+              <p class="text-text-secondary mb-4">Trees, rocks, vegetation, and natural terrain elements.</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">Environment</span>
+                <span class="bg-accent-amber text-black text-xs px-2 py-1 rounded">Nature</span>
+              </div>
+              <YouTubeEmbed videoId="dQw4w9WgXcQ" title="Nature Environment Demo" />
+            </div>
+          </div>
+
+          <!-- Portfolio Item 4 -->
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">⚔️</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Medieval Weapons Pack</h3>
+              <p class="text-text-secondary mb-4">Historically inspired weapons and armor for fantasy games.</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">Props</span>
+                <span class="bg-accent-amber text-black text-xs px-2 py-1 rounded">Medieval</span>
+              </div>
+              <YouTubeEmbed videoId="dQw4w9WgXcQ" title="Medieval Weapons Demo" />
+            </div>
+          </div>
+
+          <!-- Portfolio Item 5 -->
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🚀</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Space Station Kit</h3>
+              <p class="text-text-secondary mb-4">Modular space station components for sci-fi environments.</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">Environment</span>
+                <span class="bg-accent-amber text-black text-xs px-2 py-1 rounded">Sci-Fi</span>
+              </div>
+              <YouTubeEmbed videoId="dQw4w9WgXcQ" title="Space Station Demo" />
+            </div>
+          </div>
+
+          <!-- Portfolio Item 6 -->
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🏠</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Fantasy Village Pack</h3>
+              <p class="text-text-secondary mb-4">Buildings, props, and scenery for fantasy village settings.</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">Environment</span>
+                <span class="bg-accent-amber text-black text-xs px-2 py-1 rounded">Fantasy</span>
+              </div>
+              <YouTubeEmbed videoId="dQw4w9WgXcQ" title="Fantasy Village Demo" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto text-center">
+        <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+</Layout>

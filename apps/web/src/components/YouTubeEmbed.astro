@@ -1,0 +1,49 @@
+---
+interface Props {
+  videoId: string;
+  title?: string;
+  autoplay?: boolean;
+  controls?: boolean;
+  loop?: boolean;
+  playlist?: string;
+}
+
+const { 
+  videoId, 
+  title = 'YouTube Video',
+  autoplay = false,
+  controls = true,
+  loop = false,
+  playlist
+} = Astro.props;
+
+const params = new URLSearchParams();
+if (autoplay) params.append('autoplay', '1');
+if (!controls) params.append('controls', '0');
+if (loop) params.append('loop', '1');
+if (playlist) params.append('playlist', playlist);
+
+const embedUrl = `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+---
+
+<div class="youtube-embed w-full aspect-video rounded-lg overflow-hidden glassmorphism">
+  <iframe
+    src={embedUrl}
+    title={title}
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+    class="w-full h-full"
+    loading="lazy"
+  ></iframe>
+</div>
+
+<style>
+  .youtube-embed {
+    position: relative;
+  }
+  
+  .youtube-embed iframe {
+    border: none;
+  }
+</style>

@@ -1,0 +1,156 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CheckoutModal from '../components/CheckoutModal.astro';
+import { fetchProducts } from '../lib/api';
+
+const products = await fetchProducts();
+---
+
+<Layout title="Marketplace - Mescript Labs">
+  <div class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
+              <a href="/about" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
+              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+              <a href="/marketplace" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
+              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
+              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Marketplace Section -->
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl sm:text-5xl font-bold mb-4 text-accent-cyan">3D Asset Marketplace</h1>
+        <p class="text-xl text-text-secondary mb-8 max-w-2xl">
+          Browse our collection of premium 3D assets for game development. Each asset is optimized for real-time rendering and available in multiple formats.
+        </p>
+
+        <!-- Filters -->
+        <div class="glassmorphism rounded-lg p-4 mb-8">
+          <div class="flex flex-wrap gap-4">
+            <select class="bg-background border border-gray-700 rounded-md p-2 text-text-primary">
+              <option value="">All Categories</option>
+              <option value="characters">Characters</option>
+              <option value="environments">Environments</option>
+              <option value="props">Props</option>
+              <option value="vehicles">Vehicles</option>
+            </select>
+            <select class="bg-background border border-gray-700 rounded-md p-2 text-text-primary">
+              <option value="">All Formats</option>
+              <option value="blend">Blender</option>
+              <option value="fbx">FBX</option>
+              <option value="obj">OBJ</option>
+            </select>
+            <select class="bg-background border border-gray-700 rounded-md p-2 text-text-primary">
+              <option value="">Price Range</option>
+              <option value="0-25">$0 - $25</option>
+              <option value="25-50">$25 - $50</option>
+              <option value="50+">$50+</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {products.map((product) => (
+            <div class="glassmorphism rounded-lg overflow-hidden">
+              <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                <span class="text-6xl">{product.category === 'Characters' ? '🤖' : product.category === 'Environment' ? '🏢' : '⚙️'}</span>
+              </div>
+              <div class="p-6">
+                <h3 class="text-xl font-bold mb-2">{product.title}</h3>
+                <p class="text-text-secondary mb-4">{product.description}</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                  <span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">{product.category}</span>
+                </div>
+                <div class="mb-4">
+                  <div class="text-sm text-text-secondary mb-1">License Tiers:</div>
+                  <div class="flex justify-between text-sm gap-2">
+                    <span>Individual: <span class="text-accent-amber">${product.individual_price.toFixed(2)}</span></span>
+                    <span>Indie: <span class="text-accent-amber">${product.indie_team_price.toFixed(2)}</span></span>
+                    <span>Studio: <span class="text-accent-amber">${product.aaa_studio_price.toFixed(2)}</span></span>
+                  </div>
+                </div>
+                <div class="flex gap-3">
+                  <a href={`/marketplace/${product.id}`} class="flex-1 text-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition">
+                    Details
+                  </a>
+                  <button 
+                    onclick={`showCheckoutModal('${product.id}', '${product.title}', ${product.individual_price}, ${product.indie_team_price}, ${product.aaa_studio_price})`}
+                    class="flex-1 bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition"
+                  >
+                    Purchase
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto text-center">
+        <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- Checkout Modal -->
+    <CheckoutModal 
+      productId="default-product"
+      productTitle="Sci-Fi Character Pack"
+      individualPrice={15.00}
+      indieTeamPrice={25.00}
+      aaaStudioPrice={50.00}
+      formats={['blend', 'fbx', 'obj']}
+    />
+  </div>
+</Layout>
+
+<script>
+  const openCheckout = (productId, productTitle, individualPrice, indieTeamPrice, aaaStudioPrice) => {
+    const modal = document.getElementById('checkout-modal');
+    if (!modal) return;
+
+    modal.dataset.productId = productId;
+    modal.dataset.productTitle = productTitle;
+    modal.dataset.individualPrice = String(individualPrice);
+    modal.dataset.indieTeamPrice = String(indieTeamPrice);
+    modal.dataset.aaaStudioPrice = String(aaaStudioPrice);
+
+    const titleEl = modal.querySelector('h2');
+    if (titleEl) titleEl.textContent = `Purchase ${productTitle}`;
+
+    const form = document.getElementById('checkout-form');
+    if (form) {
+      const select = document.getElementById('license-tier');
+      if (select) {
+        select.innerHTML = `
+          <option value="individual">Individual - $${Number(individualPrice).toFixed(2)}</option>
+          <option value="indie_team">Indie Team - $${Number(indieTeamPrice).toFixed(2)}</option>
+          <option value="aaa_studio">AAA Studio - $${Number(aaaStudioPrice).toFixed(2)}</option>
+        `;
+      }
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  window.showCheckoutModal = (productId, productTitle, individualPrice, indieTeamPrice, aaaStudioPrice) => {
+    openCheckout(productId, productTitle, individualPrice, indieTeamPrice, aaaStudioPrice);
+  };
+</script>

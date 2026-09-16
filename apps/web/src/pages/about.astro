@@ -1,0 +1,100 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About Mescript Labs">
+  <div class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
+              <a href="/about" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
+              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+              <a href="/marketplace" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
+              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
+              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- About Section -->
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl sm:text-5xl font-bold mb-8 text-accent-cyan">About Mescript Labs</h1>
+        
+        <div class="glassmorphism rounded-lg p-8 mb-8">
+          <h2 class="text-2xl font-bold mb-4">Our Mission</h2>
+          <p class="text-text-secondary mb-4">
+            Mescript Labs is dedicated to providing high-quality 3D assets and resources for game developers, 
+            indie studios, and creative professionals. We believe that great art should be accessible to everyone, 
+            regardless of budget or team size.
+          </p>
+          <p class="text-text-secondary">
+            Our team of experienced 3D artists and developers create assets that are not only visually stunning 
+            but also optimized for real-time rendering, ensuring your games run smoothly while looking amazing.
+          </p>
+        </div>
+
+        <div class="glassmorphism rounded-lg p-8 mb-8">
+          <h2 class="text-2xl font-bold mb-4">Our Story</h2>
+          <p class="text-text-secondary mb-4">
+            Founded in 2024, Mescript Labs started with a simple idea: to bridge the gap between professional 
+            3D art and indie game development. Our founders, having worked in both AAA studios and indie 
+            projects, understood the challenges developers face when sourcing high-quality assets.
+          </p>
+          <p class="text-text-secondary">
+            Today, we continue to expand our library of assets, always focusing on quality, usability, and 
+            fair pricing that scales with your project's needs.
+          </p>
+        </div>
+
+        <div class="glassmorphism rounded-lg p-8 mb-8">
+          <h2 class="text-2xl font-bold mb-4">Our Values</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-xl font-bold mb-2 text-accent-cyan">Quality First</h3>
+              <p class="text-text-secondary">Every asset is rigorously tested and optimized for game engines.</p>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold mb-2 text-accent-cyan">Accessibility</h3>
+              <p class="text-text-secondary">Flexible licensing options for projects of all sizes.</p>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold mb-2 text-accent-cyan">Community</h3>
+              <p class="text-text-secondary">Supporting indie developers and fostering creativity.</p>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold mb-2 text-accent-cyan">Innovation</h3>
+              <p class="text-text-secondary">Continuously exploring new techniques and technologies.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glassmorphism rounded-lg p-8">
+          <h2 class="text-2xl font-bold mb-4">Contact Us</h2>
+          <p class="text-text-secondary mb-4">
+            Have questions or want to collaborate? We'd love to hear from you!
+          </p>
+          <a href="/contact" class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-3 px-8 rounded-lg transition inline-block">
+            Get in Touch
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto text-center">
+        <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+</Layout>

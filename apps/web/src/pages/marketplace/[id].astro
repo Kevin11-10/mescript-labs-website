@@ -1,0 +1,230 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CustomModelViewer from '../../components/CustomModelViewer.astro';
+import CheckoutModal from '../../components/CheckoutModal.astro';
+import { fetchProductById } from '../../lib/api';
+
+export function getStaticPaths() {
+  return [{ params: { id: '1' } }, { params: { id: '2' } }];
+}
+
+const { id } = Astro.params;
+const fallbackProducts: Record<string, any> = {
+  '1': {
+    id: '1',
+    title: 'Sci-Fi Character Pack',
+    description: 'Collection of futuristic character models with full rigging and animations for game development. Perfect for sci-fi games and projects.',
+    category: 'Characters',
+    individualPrice: 15.00,
+    indieTeamPrice: 25.00,
+    aaaStudioPrice: 50.00,
+    currency: 'USD',
+    r2ModelUrl: 'https://example.com/models/sci-fi-character-pack.glb',
+    r2ModelKey: 'sci-fi-character-pack.glb',
+    formats: ['blend', 'fbx', 'obj'],
+    features: [
+      '5 fully rigged character models',
+      'Animation-ready with IK/FK setup',
+      '4K PBR textures',
+      'Optimized for real-time rendering',
+      'Multiple LODs included'
+    ],
+    createdAt: '2024-01-15'
+  },
+  '2': {
+    id: '2',
+    title: 'Urban Environment Set',
+    description: 'Modular city buildings and street props for creating realistic urban environments. Includes various architectural styles.',
+    category: 'Environment',
+    individualPrice: 20.00,
+    indieTeamPrice: 35.00,
+    aaaStudioPrice: 60.00,
+    currency: 'USD',
+    r2ModelUrl: 'https://example.com/models/urban-environment-set.glb',
+    r2ModelKey: 'urban-environment-set.glb',
+    formats: ['blend', 'fbx', 'obj'],
+    features: [
+      '20 modular building pieces',
+      'Street props and details',
+      'Day/night texture variants',
+      'Collision meshes included',
+      'Unity/Unreal ready'
+    ],
+    createdAt: '2024-01-10'
+  }
+};
+
+const productData = (await fetchProductById(id || '1')) || fallbackProducts[id || '1'] || fallbackProducts['1'];
+const product = {
+  ...productData,
+  id: productData?.id ?? id ?? '1',
+  title: productData?.title ?? 'Marketplace Asset',
+  description: productData?.description ?? 'Product details unavailable.',
+  category: productData?.category ?? 'General',
+  individualPrice: Number(productData?.individualPrice ?? productData?.individual_price ?? 0),
+  indieTeamPrice: Number(productData?.indieTeamPrice ?? productData?.indie_team_price ?? 0),
+  aaaStudioPrice: Number(productData?.aaaStudioPrice ?? productData?.aaa_studio_price ?? 0),
+  r2ModelUrl: productData?.r2ModelUrl ?? productData?.model_url ?? productData?.sketchfabModelUid ?? productData?.sketchfab_model_uid ?? '',
+  r2ModelKey: productData?.r2ModelKey ?? productData?.r2_model_key ?? '',
+  createdAt: productData?.createdAt ?? productData?.created_at ?? '2024-01-01',
+  formats: productData?.formats ?? ['blend', 'fbx', 'obj'],
+  features: productData?.features ?? [
+    'Production-ready asset library',
+    'Commercial licensing included',
+    'Optimized for game engines',
+  ],
+};
+---
+
+<Layout title={`${product.title} - Marketplace`}>
+  <div class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
+              <a href="/about" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
+              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+              <a href="/marketplace" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
+              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
+              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Product Detail Section -->
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <!-- Breadcrumb -->
+        <nav class="mb-8">
+          <ol class="flex items-center space-x-2 text-sm">
+            <li><a href="/marketplace" class="text-gray-400 hover:text-accent-cyan">Marketplace</a></li>
+            <li class="text-gray-600">/</li>
+            <li class="text-text-primary">{product.title}</li>
+          </ol>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- 3D Viewer -->
+          <div>
+            <CustomModelViewer 
+              modelUrl={product.r2ModelUrl || ''}
+              modelUid={product.r2ModelKey || ''}
+              title={product.title}
+              autostart={false}
+              autospin={true}
+            />
+          </div>
+
+          <!-- Product Details -->
+          <div>
+            <h1 class="text-4xl font-bold mb-4 text-accent-cyan">{product.title}</h1>
+            <p class="text-xl text-text-secondary mb-6">{product.description}</p>
+            
+            <div class="glassmorphism rounded-lg p-6 mb-6">
+              <h3 class="text-lg font-bold mb-4">License Tiers</h3>
+              <div class="space-y-4">
+                <div class="flex justify-between items-center p-3 bg-background rounded">
+                  <div>
+                    <div class="font-bold">Individual</div>
+                    <div class="text-sm text-text-secondary">Personal use, single project</div>
+                  </div>
+                  <div class="text-2xl font-bold text-accent-amber">${product.individualPrice.toFixed(2)}</div>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-background rounded border border-accent-cyan">
+                  <div>
+                    <div class="font-bold">Indie Team</div>
+                    <div class="text-sm text-text-secondary">Small teams, commercial use</div>
+                  </div>
+                  <div class="text-2xl font-bold text-accent-amber">${product.indieTeamPrice.toFixed(2)}</div>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-background rounded">
+                  <div>
+                    <div class="font-bold">AAA Studio</div>
+                    <div class="text-sm text-text-secondary">Large studios, unlimited use</div>
+                  </div>
+                  <div class="text-2xl font-bold text-accent-amber">${product.aaaStudioPrice.toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="glassmorphism rounded-lg p-6 mb-6">
+              <h3 class="text-lg font-bold mb-4">Features</h3>
+              <ul class="space-y-2">
+                {product.features.map(feature => (
+                  <li class="flex items-center">
+                    <span class="text-accent-cyan mr-2">✓</span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div class="glassmorphism rounded-lg p-6 mb-6">
+              <h3 class="text-lg font-bold mb-4">Available Formats</h3>
+              <div class="flex flex-wrap gap-2">
+                {product.formats.map(format => (
+                  <span class="bg-accent-cyan text-black text-sm px-3 py-1 rounded">{format.toUpperCase()}</span>
+                ))}
+              </div>
+            </div>
+
+            <button 
+              onclick="showCheckoutModal()"
+              class="w-full bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-4 px-8 rounded-lg transition text-lg"
+            >
+              Purchase Asset
+            </button>
+          </div>
+        </div>
+
+        <!-- Technical Details -->
+        <div class="mt-12 glassmorphism rounded-lg p-8">
+          <h2 class="text-2xl font-bold mb-6 text-accent-cyan">Technical Details</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="font-bold mb-2">Category</h3>
+              <p class="text-text-secondary">{product.category}</p>
+            </div>
+            <div>
+              <h3 class="font-bold mb-2">Release Date</h3>
+              <p class="text-text-secondary">{product.createdAt}</p>
+            </div>
+            <div>
+              <h3 class="font-bold mb-2">Polygons</h3>
+              <p class="text-text-secondary">Optimized for real-time</p>
+            </div>
+            <div>
+              <h3 class="font-bold mb-2">Textures</h3>
+              <p class="text-text-secondary">4K PBR included</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto text-center">
+        <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- Checkout Modal -->
+    <CheckoutModal 
+      productId={product.id}
+      productTitle={product.title}
+      individualPrice={product.individualPrice}
+      indieTeamPrice={product.indieTeamPrice}
+      aaaStudioPrice={product.aaaStudioPrice}
+      formats={product.formats}
+    />
+  </div>
+</Layout>

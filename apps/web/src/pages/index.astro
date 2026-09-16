@@ -1,0 +1,142 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Mescript Labs - Home">
+  <div class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
+              <a href="/about" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
+              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+              <a href="/marketplace" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
+              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
+              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto text-center">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
+          <span class="text-accent-cyan">High-Quality 3D Assets</span>
+          <br />
+          <span class="text-text-primary">for Game Development</span>
+        </h1>
+        <p class="text-xl text-text-secondary mb-8 max-w-2xl mx-auto">
+          Professional 3D models, textures, and environments crafted for indie developers and studios. Elevate your projects with our premium asset collection.
+        </p>
+        <div class="flex justify-center space-x-4">
+          <a href="/marketplace" class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-3 px-8 rounded-lg transition">
+            Browse Marketplace
+          </a>
+          <a href="/portfolio" class="glassmorphism hover:bg-card text-white font-bold py-3 px-8 rounded-lg transition">
+            View Portfolio
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-12 text-accent-cyan">Why Choose Mescript Labs?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="glassmorphism rounded-lg p-6 text-center">
+            <div class="text-4xl mb-4">🎮</div>
+            <h3 class="text-xl font-bold mb-2">Game-Ready Assets</h3>
+            <p class="text-text-secondary">Optimized for real-time rendering with efficient polygon counts and clean topology.</p>
+          </div>
+          <div class="glassmorphism rounded-lg p-6 text-center">
+            <div class="text-4xl mb-4">🎨</div>
+            <h3 class="text-xl font-bold mb-2">Multiple Formats</h3>
+            <p class="text-text-secondary">Available in Blender, FBX, OBJ, and more for seamless integration into your workflow.</p>
+          </div>
+          <div class="glassmorphism rounded-lg p-6 text-center">
+            <div class="text-4xl mb-4">💎</div>
+            <h3 class="text-xl font-bold mb-2">Flexible Licensing</h3>
+            <p class="text-text-secondary">Choose from individual, indie team, or studio licenses to match your needs.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8 bg-card">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-12 text-accent-cyan">Featured Assets</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🤖</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Sci-Fi Character Pack</h3>
+              <p class="text-text-secondary mb-4">Collection of futuristic character models with animations.</p>
+              <div class="flex justify-between items-center">
+                <span class="text-accent-amber font-bold">From $15.00</span>
+                <a href="/marketplace" class="text-accent-cyan hover:underline">View Details</a>
+              </div>
+            </div>
+          </div>
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🏢</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Urban Environment Set</h3>
+              <p class="text-text-secondary mb-4">Modular city buildings and street props for urban scenes.</p>
+              <div class="flex justify-between items-center">
+                <span class="text-accent-amber font-bold">From $25.00</span>
+                <a href="/marketplace" class="text-accent-cyan hover:underline">View Details</a>
+              </div>
+            </div>
+          </div>
+          <div class="glassmorphism rounded-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-6xl">🌲</span>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">Nature Environment Pack</h3>
+              <p class="text-text-secondary mb-4">Trees, rocks, and vegetation for outdoor environments.</p>
+              <div class="flex justify-between items-center">
+                <span class="text-accent-amber font-bold">From $20.00</span>
+                <a href="/marketplace" class="text-accent-cyan hover:underline">View Details</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto text-center glassmorphism rounded-lg p-8">
+        <h2 class="text-3xl font-bold mb-4 text-accent-cyan">Ready to Enhance Your Project?</h2>
+        <p class="text-xl text-text-secondary mb-8">
+          Join thousands of developers using Mescript Labs assets to create amazing games and experiences.
+        </p>
+        <a href="/marketplace" class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-3 px-8 rounded-lg transition">
+          Explore Marketplace
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto text-center">
+        <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+</Layout>

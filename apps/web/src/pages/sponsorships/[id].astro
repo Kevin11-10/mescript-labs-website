@@ -1,0 +1,207 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  return [{ params: { id: '1' } }, { params: { id: '2' } }];
+}
+
+const { id } = Astro.params;
+
+// Mock sponsorship goal data - in production this would come from Supabase
+const sponsorshipGoals: Record<string, any> = {
+  '1': {
+    id: '1',
+    title: 'Next Asset Pack',
+    description: 'Help us fund the development of our next premium asset pack featuring medieval fantasy environments. This will include 15+ building types, props, and terrain elements with 4K textures.',
+    targetAmount: 5000,
+    currentAmount: 2500,
+    status: 'active',
+    createdAt: '2024-01-01',
+    tiers: [
+      { name: 'Bronze', amount: 5, benefits: ['Name on sponsors page', 'Early access to updates', 'Discord supporter role'] },
+      { name: 'Silver', amount: 15, benefits: ['All Bronze benefits', 'Monthly Q&A sessions', 'Voting on new assets', 'Exclusive discounts'] },
+      { name: 'Gold', amount: 50, benefits: ['All Silver benefits', 'Custom asset requests', 'Commercial license', 'Priority support'] }
+    ],
+    updates: [
+      { date: '2024-01-15', title: 'Progress Update', content: 'We have completed the building prototypes and are now working on the texturing phase.' },
+      { date: '2024-01-01', title: 'Project Started', content: 'Funding goal established and development has begun on the medieval fantasy environment pack.' }
+    ]
+  },
+  '2': {
+    id: '2',
+    title: 'Tool Development',
+    description: 'Support the development of free tools and plugins for the 3D game development community. This includes Blender add-ons and Unity plugins.',
+    targetAmount: 3000,
+    currentAmount: 1200,
+    status: 'active',
+    createdAt: '2024-01-05',
+    tiers: [
+      { name: 'Bronze', amount: 5, benefits: ['Name on sponsors page', 'Early access to tools', 'Discord supporter role'] },
+      { name: 'Silver', amount: 15, benefits: ['All Bronze benefits', 'Tool voting rights', 'Beta testing access'] },
+      { name: 'Gold', amount: 50, benefits: ['All Silver benefits', 'Custom tool requests', 'Priority support'] }
+    ],
+    updates: [
+      { date: '2024-01-10', title: 'Planning Complete', content: 'We have finalized the tool roadmap and started development on the first Blender add-on.' }
+    ]
+  }
+};
+
+const goal = sponsorshipGoals[id] || sponsorshipGoals['1'];
+const progressPercentage = (goal.currentAmount / goal.targetAmount) * 100;
+---
+
+<Layout title={`${goal.title} - Sponsorships`}>
+  <div class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
+              <a href="/about" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
+              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+              <a href="/marketplace" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
+              <a href="/sponsorships" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
+              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Sponsorship Goal Detail Section -->
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <!-- Breadcrumb -->
+        <nav class="mb-8">
+          <ol class="flex items-center space-x-2 text-sm">
+            <li><a href="/sponsorships" class="text-gray-400 hover:text-accent-cyan">Sponsorships</a></li>
+            <li class="text-gray-600">/</li>
+            <li class="text-text-primary">{goal.title}</li>
+          </ol>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Main Content -->
+          <div class="lg:col-span-2">
+            <h1 class="text-4xl font-bold mb-4 text-accent-cyan">{goal.title}</h1>
+            <p class="text-xl text-text-secondary mb-8">{goal.description}</p>
+            
+            <!-- Progress Bar -->
+            <div class="glassmorphism rounded-lg p-6 mb-8">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Funding Progress</h3>
+                <span class="text-accent-amber font-bold">${goal.currentAmount.toLocaleString()} / ${goal.targetAmount.toLocaleString()}</span>
+              </div>
+              <div class="w-full bg-gray-700 rounded-full h-4 mb-2">
+                <div class="bg-accent-cyan h-4 rounded-full transition-all" style={`width: ${progressPercentage}%`}></div>
+              </div>
+              <div class="text-sm text-text-secondary">{progressPercentage.toFixed(1)}% funded</div>
+            </div>
+
+            <!-- Sponsorship Tiers -->
+            <div class="glassmorphism rounded-lg p-6 mb-8">
+              <h3 class="text-lg font-bold mb-4">Sponsorship Tiers</h3>
+              <div class="space-y-4">
+                {goal.tiers.map(tier => (
+                  <div class="border border-gray-700 rounded-lg p-4 hover:border-accent-cyan transition">
+                    <div class="flex justify-between items-start mb-2">
+                      <h4 class="font-bold text-lg">{tier.name}</h4>
+                      <span class="text-2xl font-bold text-accent-amber">${tier.amount}/mo</span>
+                    </div>
+                    <ul class="space-y-1 text-sm text-text-secondary">
+                      {tier.benefits.map(benefit => (
+                        <li class="flex items-center">
+                          <span class="text-accent-cyan mr-2">✓</span>
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button class="mt-4 w-full bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">
+                      Sponsor {tier.name}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <!-- Project Updates -->
+            <div class="glassmorphism rounded-lg p-6">
+              <h3 class="text-lg font-bold mb-4">Project Updates</h3>
+              <div class="space-y-6">
+                {goal.updates.map(update => (
+                  <div class="border-b border-gray-700 pb-4 last:border-0">
+                    <div class="text-sm text-text-secondary mb-1">{update.date}</div>
+                    <h4 class="font-bold mb-2">{update.title}</h4>
+                    <p class="text-text-secondary">{update.content}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <div>
+            <div class="glassmorphism rounded-lg p-6 mb-6">
+              <h3 class="text-lg font-bold mb-4">Goal Status</h3>
+              <div class="flex items-center mb-2">
+                <span class={`px-2 py-1 rounded text-sm ${goal.status === 'active' ? 'bg-green-500 text-black' : 'bg-gray-500 text-white'}`}>
+                  {goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}
+                </span>
+              </div>
+              <div class="text-sm text-text-secondary">
+                <div>Started: {goal.createdAt}</div>
+                <div>Goal: ${goal.targetAmount.toLocaleString()}</div>
+                <div>Raised: ${goal.currentAmount.toLocaleString()}</div>
+                <div>Remaining: ${(goal.targetAmount - goal.currentAmount).toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div class="glassmorphism rounded-lg p-6 mb-6">
+              <h3 class="text-lg font-bold mb-4">How It Works</h3>
+              <ol class="space-y-3 text-sm">
+                <li class="flex items-start">
+                  <span class="text-accent-cyan mr-2">1.</span>
+                  <span>Choose your sponsorship tier</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-accent-cyan mr-2">2.</span>
+                  <span>Set up monthly contribution</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-accent-cyan mr-2">3.</span>
+                  <span>Receive tier benefits immediately</span>
+                </li>
+                <li class="flex items-start">
+                  <span class="text-accent-cyan mr-2">4.</span>
+                  <span>Track project progress in real-time</span>
+                </li>
+              </ol>
+            </div>
+
+            <div class="glassmorphism rounded-lg p-6">
+              <h3 class="text-lg font-bold mb-4">Questions?</h3>
+              <p class="text-text-secondary mb-4">
+                Have questions about this sponsorship goal or want to discuss custom sponsorship options?
+              </p>
+              <a href="/contact" class="block w-full bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition text-center">
+                Contact Us
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto text-center">
+        <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+</Layout>
