@@ -1,7 +1,7 @@
-FROM node:18-slim
+FROM python:3.11-slim
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 3000
-CMD ["node", "index.js"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000"]

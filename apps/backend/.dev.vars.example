@@ -37,7 +37,7 @@ GITHUB_APP_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nPASTE_YOUR_PRIVATE_KEY_
 
 # AI / content automation
 # Preferred architecture: backend proxies to a Hugging Face Space AI service, then falls back to OpenAI/Anthropic if configured.
-AI_SERVICE_URL=https://your-mescript-ai-space.hf.space
+AI_SERVICE_URL=https://your-render-service.onrender.com
 AI_SERVICE_API_KEY=your_hf_space_token_if_required
 OPENAI_API_KEY=your_openai_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
