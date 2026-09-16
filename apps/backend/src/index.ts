@@ -5,6 +5,7 @@ import { handleCheckoutCreate } from './handlers/checkout';
 import { handleProductList, handleProductById } from './handlers/products';
 import { handleCreemWebhook } from './handlers/webhooks';
 import { handleAssetDownload } from './handlers/assets';
+import { handleUploadRequest, handleUploadComplete, handleUploadStatus } from './handlers/uploads';
 import { handleMockBuy } from './handlers/mock';
 import { handleAdminRepoStatus, handleAdminContentUpdate } from './handlers/admin';
 import { handleAiGenerate, handleAiApprove } from './handlers/ai';
@@ -29,6 +30,11 @@ router.post('/webhooks/creem', handleCreemWebhook);
 
 // Asset download endpoint
 router.get('/api/v1/assets/download', handleAssetDownload);
+
+// Upload endpoints (R2 presigned URL flow)
+router.post('/api/v1/uploads/request', (request: Request) => handleUploadRequest(request));
+router.post('/api/v1/uploads/complete', (request: Request) => handleUploadComplete(request));
+router.get('/api/v1/uploads/status', (request: Request) => handleUploadStatus(request));
 
 // Admin content management endpoints
 router.get('/api/v1/admin/repo-status', handleAdminRepoStatus);
