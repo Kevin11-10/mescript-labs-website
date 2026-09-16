@@ -45,6 +45,10 @@ AI_MODEL=gpt-4.1-mini
 AI_ADMIN_APPROVAL_REQUIRED=true
 ALLOW_AI_OPS=true
 
+# Hugging Face inference (simple model fallback for testing)
+HUGGINGFACE_API_KEY=your_huggingface_api_key
+HUGGINGFACE_MODEL=gpt2
+
 # Admin auth / content management control
 ADMIN_SESSION_SECRET=replace_with_a_long_random_secret
 ADMIN_JWT_SECRET=replace_with_a_long_random_secret

@@ -127,10 +127,29 @@ const sponsorshipRows = await getSponsorshipGoals();
             <div id="products-tab" class="tab-content p-6">
               <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold">Product Management</h3>
-                <button class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">
-                  Add New Product
-                </button>
+                    <button class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">
+                      Add New Product
+                    </button>
               </div>
+              
+                  <!-- Simple model upload UI -->
+                  <div class="mb-6 glassmorphism rounded-lg p-4">
+                    <h4 class="font-bold mb-3">Upload 3D Model (FBX / GLB / ZIP)</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                      <div>
+                        <label class="block text-sm font-medium mb-1">File</label>
+                        <input id="model-file" type="file" accept=".glb,.fbx,.zip,.gltf,.obj" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium mb-1">Product ID (optional)</label>
+                        <input id="model-product-id" type="text" placeholder="existing product id" class="w-full bg-background border border-gray-700 rounded-md p-2" />
+                      </div>
+                      <div>
+                        <button id="upload-model-btn" class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">Upload</button>
+                      </div>
+                    </div>
+                    <p id="upload-status" class="mt-3 text-sm text-text-secondary"></p>
+                  </div>
               
               <div class="overflow-x-auto">
                 <table class="w-full">
@@ -520,6 +539,64 @@ const sponsorshipRows = await getSponsorshipGoals();
           console.error('AI approval failed:', error);
           if (aiStatus) aiStatus.textContent = error instanceof Error ? error.message : 'AI approval failed.';
         }
+      });
+    }
+
+    // Upload flow
+    const uploadBtn = document.getElementById('upload-model-btn');
+    const fileInput = document.getElementById('model-file');
+    const productIdInput = document.getElementById('model-product-id');
+    const uploadStatus = document.getElementById('upload-status');
+
+    async function uploadFile(file, productId) {
+      if (!file) return;
+      if (uploadStatus) uploadStatus.textContent = 'Requesting upload URL...';
+
+      try {
+        const requestResp = await fetch(`${apiBaseUrl}/api/v1/uploads/request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name, contentType: file.type || 'application/octet-stream', productId })
+        });
+
+        const data = await requestResp.json();
+        if (!requestResp.ok) throw new Error(data?.error || 'Failed to get upload URL');
+
+        const { uploadUrl, key } = data;
+        if (uploadStatus) uploadStatus.textContent = 'Uploading file to R2...';
+
+        const putResp = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+        if (!putResp.ok) throw new Error('Upload to R2 failed');
+
+        if (uploadStatus) uploadStatus.textContent = 'Finalizing upload...';
+        const completeResp = await fetch(`${apiBaseUrl}/api/v1/uploads/complete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, productId })
+        });
+
+        const completeData = await completeResp.json();
+        if (!completeResp.ok) throw new Error(completeData?.error || 'Upload complete failed');
+
+        if (uploadStatus) uploadStatus.textContent = `Upload successful: ${completeData.url || key}`;
+        return completeData;
+      } catch (err) {
+        console.error('Upload failed', err);
+        if (uploadStatus) uploadStatus.textContent = err instanceof Error ? err.message : 'Upload failed';
+        return null;
+      }
+    }
+
+    if (uploadBtn) {
+      uploadBtn.addEventListener('click', async () => {
+        const file = fileInput && (fileInput as HTMLInputElement).files ? (fileInput as HTMLInputElement).files[0] : null;
+        const productId = productIdInput ? (productIdInput as HTMLInputElement).value.trim() : undefined;
+        if (!file) {
+          if (uploadStatus) uploadStatus.textContent = 'Select a file to upload.';
+          return;
+        }
+
+        await uploadFile(file, productId || undefined);
       });
     }
 
