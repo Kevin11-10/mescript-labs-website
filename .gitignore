@@ -7,7 +7,9 @@ node_modules/
 coverage/
 
 # Production
-dist/
+# Note: apps/backend/dist is committed for Render deployment
+# apps/web/dist should be ignored for Astro build
+apps/web/dist/
 build/
 .next/
 out/
