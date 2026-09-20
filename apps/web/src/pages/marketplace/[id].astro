@@ -78,31 +78,8 @@ const product = {
 
 <Layout title={`${product.title} - Marketplace`}>
   <div class="min-h-screen">
-    <!-- Navigation -->
-    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
-          </div>
-          <div class="hidden md:block">
-            <div class="ml-10 flex items-baseline space-x-4">
-              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
-              <a href="/about" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
-              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
-              <a href="/marketplace" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
-              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
-              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Product Detail Section -->
     <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
-        <!-- Breadcrumb -->
         <nav class="mb-8">
           <ol class="flex items-center space-x-2 text-sm">
             <li><a href="/marketplace" class="text-gray-400 hover:text-accent-cyan">Marketplace</a></li>
@@ -111,9 +88,14 @@ const product = {
           </ol>
         </nav>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- 3D Viewer -->
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div>
+            <div class="mb-4 flex items-center justify-between">
+              <span class="pill">Model preview</span>
+              <button id="open-fullscreen-viewer" type="button" class="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200 transition hover:border-slate-500">
+                Fullscreen
+              </button>
+            </div>
             <CustomModelViewer 
               modelUrl={product.r2ModelUrl || ''}
               modelUid={product.r2ModelKey || ''}
@@ -123,86 +105,88 @@ const product = {
             />
           </div>
 
-          <!-- Product Details -->
           <div>
-            <h1 class="text-4xl font-bold mb-4 text-accent-cyan">{product.title}</h1>
-            <p class="text-xl text-text-secondary mb-6">{product.description}</p>
-            
-            <div class="glassmorphism rounded-lg p-6 mb-6">
-              <h3 class="text-lg font-bold mb-4">License Tiers</h3>
-              <div class="space-y-4">
-                <div class="flex justify-between items-center p-3 bg-background rounded">
+            <h1 class="mb-4 text-4xl font-bold text-accent-cyan">{product.title}</h1>
+            <p class="mb-6 text-xl text-text-secondary">{product.description}</p>
+
+            <div class="glassmorphism mb-6 rounded-2xl p-6">
+              <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-bold">License tiers</h3>
+                <span class="rounded-full border border-slate-700 bg-slate-900/80 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-slate-300">Live pricing</span>
+              </div>
+              <div id="license-tier-list" class="space-y-3">
+                <button type="button" class="license-tier-btn flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-950/70 p-3 text-left transition hover:border-slate-500" data-tier="individual" data-price={product.individualPrice}>
                   <div>
-                    <div class="font-bold">Individual</div>
-                    <div class="text-sm text-text-secondary">Personal use, single project</div>
+                    <div class="font-bold text-white">Individual</div>
+                    <div class="text-sm text-slate-300">Personal use, single project</div>
                   </div>
-                  <div class="text-2xl font-bold text-accent-amber">${product.individualPrice.toFixed(2)}</div>
-                </div>
-                <div class="flex justify-between items-center p-3 bg-background rounded border border-accent-cyan">
+                  <span class="text-xl font-bold text-accent-amber">${product.individualPrice.toFixed(2)}</span>
+                </button>
+                <button type="button" class="license-tier-btn flex w-full items-center justify-between rounded-xl border border-accent-cyan bg-sky-500/5 p-3 text-left transition hover:border-sky-400" data-tier="indie_team" data-price={product.indieTeamPrice}>
                   <div>
-                    <div class="font-bold">Indie Team</div>
-                    <div class="text-sm text-text-secondary">Small teams, commercial use</div>
+                    <div class="font-bold text-white">Indie Team</div>
+                    <div class="text-sm text-slate-300">Small teams, commercial use</div>
                   </div>
-                  <div class="text-2xl font-bold text-accent-amber">${product.indieTeamPrice.toFixed(2)}</div>
-                </div>
-                <div class="flex justify-between items-center p-3 bg-background rounded">
+                  <span class="text-xl font-bold text-accent-amber">${product.indieTeamPrice.toFixed(2)}</span>
+                </button>
+                <button type="button" class="license-tier-btn flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-950/70 p-3 text-left transition hover:border-slate-500" data-tier="aaa_studio" data-price={product.aaaStudioPrice}>
                   <div>
-                    <div class="font-bold">AAA Studio</div>
-                    <div class="text-sm text-text-secondary">Large studios, unlimited use</div>
+                    <div class="font-bold text-white">AAA Studio</div>
+                    <div class="text-sm text-slate-300">Large studios, unlimited use</div>
                   </div>
-                  <div class="text-2xl font-bold text-accent-amber">${product.aaaStudioPrice.toFixed(2)}</div>
-                </div>
+                  <span class="text-xl font-bold text-accent-amber">${product.aaaStudioPrice.toFixed(2)}</span>
+                </button>
               </div>
             </div>
 
-            <div class="glassmorphism rounded-lg p-6 mb-6">
+            <div class="glassmorphism mb-6 rounded-2xl p-6">
               <h3 class="text-lg font-bold mb-4">Features</h3>
               <ul class="space-y-2">
-                {product.features.map(feature => (
+                {product.features.map((feature) => (
                   <li class="flex items-center">
-                    <span class="text-accent-cyan mr-2">✓</span>
+                    <span class="mr-2 text-accent-cyan">✓</span>
                     <span>{feature}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div class="glassmorphism rounded-lg p-6 mb-6">
+            <div class="glassmorphism mb-6 rounded-2xl p-6">
               <h3 class="text-lg font-bold mb-4">Available Formats</h3>
               <div class="flex flex-wrap gap-2">
-                {product.formats.map(format => (
-                  <span class="bg-accent-cyan text-black text-sm px-3 py-1 rounded">{format.toUpperCase()}</span>
+                {product.formats.map((format) => (
+                  <span class="rounded-full bg-accent-cyan px-3 py-1 text-sm font-semibold uppercase tracking-[0.08em] text-slate-950">{format}</span>
                 ))}
               </div>
             </div>
 
             <button 
-              onclick="showCheckoutModal()"
-              class="w-full bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-4 px-8 rounded-lg transition text-lg"
+              type="button"
+              onclick={`window.showCheckoutModal('${product.id}', '${product.title}', 'indie_team', 'glb')`}
+              class="w-full rounded-xl bg-gradient-to-r from-sky-400 to-violet-500 px-8 py-4 text-lg font-bold text-slate-950 transition hover:brightness-110"
             >
               Purchase Asset
             </button>
           </div>
         </div>
 
-        <!-- Technical Details -->
         <div class="mt-12 glassmorphism rounded-lg p-8">
-          <h2 class="text-2xl font-bold mb-6 text-accent-cyan">Technical Details</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 class="mb-6 text-2xl font-bold text-accent-cyan">Technical Details</h2>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <h3 class="font-bold mb-2">Category</h3>
+              <h3 class="mb-2 font-bold">Category</h3>
               <p class="text-text-secondary">{product.category}</p>
             </div>
             <div>
-              <h3 class="font-bold mb-2">Release Date</h3>
+              <h3 class="mb-2 font-bold">Release Date</h3>
               <p class="text-text-secondary">{product.createdAt}</p>
             </div>
             <div>
-              <h3 class="font-bold mb-2">Polygons</h3>
+              <h3 class="mb-2 font-bold">Polygons</h3>
               <p class="text-text-secondary">Optimized for real-time</p>
             </div>
             <div>
-              <h3 class="font-bold mb-2">Textures</h3>
+              <h3 class="mb-2 font-bold">Textures</h3>
               <p class="text-text-secondary">4K PBR included</p>
             </div>
           </div>
@@ -210,14 +194,12 @@ const product = {
       </div>
     </section>
 
-    <!-- Footer -->
     <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto text-center">
         <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
       </div>
     </footer>
 
-    <!-- Checkout Modal -->
     <CheckoutModal 
       productId={product.id}
       productTitle={product.title}
@@ -226,5 +208,131 @@ const product = {
       aaaStudioPrice={product.aaaStudioPrice}
       formats={product.formats}
     />
+
+    <div id="fullscreen-viewer-overlay" data-product-id={product.id} data-product-title={product.title} class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm">
+      <div class="w-full max-w-5xl rounded-3xl border border-slate-700 bg-slate-950/95 p-4 shadow-2xl">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-accent-cyan">Preview</p>
+            <h3 class="mt-1 text-xl font-bold text-white">{product.title}</h3>
+          </div>
+          <button id="close-fullscreen-viewer" type="button" class="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-sm text-slate-200 hover:border-slate-500">Close</button>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-[1.5fr_0.9fr]">
+          <div class="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900/60">
+            <div class="h-[440px]">
+              <CustomModelViewer 
+                modelUrl={product.r2ModelUrl || ''}
+                modelUid={product.r2ModelKey || ''}
+                title={product.title}
+                autostart={false}
+                autospin={true}
+              />
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
+            <p class="mb-3 text-xs uppercase tracking-[0.2em] text-accent-cyan">Selected tier</p>
+            <div class="mb-4 flex items-center justify-between rounded-xl border border-slate-700 bg-slate-950/80 p-3">
+              <span id="fullscreen-license-label" class="font-semibold text-white">Indie Team</span>
+              <span id="fullscreen-license-price" class="text-xl font-bold text-accent-amber">${product.indieTeamPrice.toFixed(2)}</span>
+            </div>
+
+            <div class="space-y-2">
+              <button type="button" class="fullscreen-license-option flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-950/80 p-3 text-left transition hover:border-slate-500" data-tier="individual" data-price={product.individualPrice}>
+                <span class="font-medium text-white">Individual</span>
+                <span class="text-sm font-bold text-accent-amber">${product.individualPrice.toFixed(2)}</span>
+              </button>
+              <button type="button" class="fullscreen-license-option flex w-full items-center justify-between rounded-xl border border-accent-cyan bg-sky-500/5 p-3 text-left transition hover:border-sky-400" data-tier="indie_team" data-price={product.indieTeamPrice}>
+                <span class="font-medium text-white">Indie Team</span>
+                <span class="text-sm font-bold text-accent-amber">${product.indieTeamPrice.toFixed(2)}</span>
+              </button>
+              <button type="button" class="fullscreen-license-option flex w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-950/80 p-3 text-left transition hover:border-slate-500" data-tier="aaa_studio" data-price={product.aaaStudioPrice}>
+                <span class="font-medium text-white">AAA Studio</span>
+                <span class="text-sm font-bold text-accent-amber">${product.aaaStudioPrice.toFixed(2)}</span>
+              </button>
+            </div>
+
+            <div class="mt-5 flex gap-2">
+              <button id="fullscreen-buy" type="button" class="flex-1 rounded-xl bg-gradient-to-r from-sky-400 to-violet-500 px-4 py-3 font-bold text-slate-950 transition hover:brightness-110">
+                Proceed
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </Layout>
+
+<script>
+  const fullscreenOverlay = document.getElementById('fullscreen-viewer-overlay');
+  const productId = fullscreenOverlay?.dataset?.productId || '';
+  const productTitle = fullscreenOverlay?.dataset?.productTitle || '';
+  const tierLabels = {
+    individual: 'Individual',
+    indie_team: 'Indie Team',
+    aaa_studio: 'AAA Studio',
+  };
+
+  const openFullscreenButton = document.getElementById('open-fullscreen-viewer');
+  const closeFullscreenButton = document.getElementById('close-fullscreen-viewer');
+  const fullscreenLicenseLabel = document.getElementById('fullscreen-license-label');
+  const fullscreenLicensePrice = document.getElementById('fullscreen-license-price');
+  const fullscreenBuyButton = document.getElementById('fullscreen-buy');
+  const fullscreenOptions = document.querySelectorAll('.fullscreen-license-option');
+
+  let selectedTier = 'indie_team';
+
+  const syncFullscreenTier = (nextTier) => {
+    selectedTier = nextTier;
+    const selectedOption = document.querySelector(`.fullscreen-license-option[data-tier="${nextTier}"]`);
+    const nextPrice = Number(selectedOption?.dataset?.price ?? 0);
+    const label = tierLabels[nextTier] || 'Individual';
+
+    if (fullscreenLicenseLabel) fullscreenLicenseLabel.textContent = label;
+    if (fullscreenLicensePrice) fullscreenLicensePrice.textContent = `$${Number(nextPrice).toFixed(2)}`;
+
+    fullscreenOptions.forEach((option) => {
+      const isSelected = option.dataset.tier === nextTier;
+      option.classList.toggle('border-accent-cyan', isSelected);
+      option.classList.toggle('bg-sky-500/5', isSelected);
+      option.classList.toggle('border-slate-700', !isSelected);
+      option.classList.toggle('bg-slate-950/80', !isSelected);
+    });
+  };
+
+  if (openFullscreenButton && fullscreenOverlay) {
+    openFullscreenButton.addEventListener('click', () => {
+      fullscreenOverlay.classList.remove('hidden');
+      fullscreenOverlay.classList.add('flex');
+    });
+  }
+
+  if (closeFullscreenButton && fullscreenOverlay) {
+    closeFullscreenButton.addEventListener('click', () => {
+      fullscreenOverlay.classList.add('hidden');
+      fullscreenOverlay.classList.remove('flex');
+    });
+  }
+
+  fullscreenOptions.forEach((option) => {
+    option.addEventListener('click', () => {
+      syncFullscreenTier(option.dataset.tier);
+    });
+  });
+
+  if (fullscreenBuyButton) {
+    fullscreenBuyButton.addEventListener('click', () => {
+      const format = 'glb';
+      window.showCheckoutModal(productId, productTitle, selectedTier, format);
+      if (fullscreenOverlay) {
+        fullscreenOverlay.classList.add('hidden');
+        fullscreenOverlay.classList.remove('flex');
+      }
+    });
+  }
+
+  syncFullscreenTier(selectedTier);
+</script>

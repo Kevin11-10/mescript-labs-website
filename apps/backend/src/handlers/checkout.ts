@@ -1,6 +1,6 @@
-import { corsHeaders, type Env } from '../config';
-import { CreemService } from '../services/creem';
-import { createSupabaseService } from '../services/supabase';
+import { corsHeaders, type Env } from '../config.js';
+import { CreemService } from '../services/creem.js';
+import { createSupabaseService } from '../services/supabase.js';
 
 interface CheckoutRequest {
   product_id: string;

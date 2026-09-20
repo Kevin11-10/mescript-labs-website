@@ -127,7 +127,12 @@ export async function createCheckout(request: CheckoutRequest): Promise<Checkout
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(request),
+    body: JSON.stringify({
+      product_id: request.product_id,
+      license_tier: request.license_tier,
+      requested_format: request.requested_format,
+      buyer_email: request.buyer_email,
+    }),
   });
 
   if (!response.ok) {

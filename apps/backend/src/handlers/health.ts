@@ -1,4 +1,4 @@
-import { corsHeaders } from '../config';
+import { corsHeaders } from '../config.js';
 
 export function handleHealth(): Response {
   return new Response(

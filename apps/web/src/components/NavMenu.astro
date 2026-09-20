@@ -1,0 +1,45 @@
+---
+const navItems = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/portfolio', label: 'Portfolio' },
+  { href: '/marketplace', label: 'Marketplace' },
+  { href: '/sponsorships', label: 'Sponsorships' },
+  { href: '/contact', label: 'Contact' },
+];
+---
+
+<nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex h-16 items-center justify-between">
+      <a href="/" class="text-2xl font-black tracking-tight text-accent-cyan">Mescript Labs</a>
+
+      <div class="hidden items-center gap-2 md:flex">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class="rounded-full px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-accent-cyan"
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+
+      <details class="group relative md:hidden">
+        <summary class="list-none cursor-pointer rounded-full border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm font-semibold text-slate-200">
+          Menu
+        </summary>
+        <div class="absolute right-0 top-12 w-52 rounded-2xl border border-slate-700 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl">
+          {navItems.map((item) => (
+            <a
+              href={item.href}
+              class="block rounded-xl px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800 hover:text-accent-cyan"
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </details>
+    </div>
+  </div>
+</nav>

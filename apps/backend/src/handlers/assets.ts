@@ -1,5 +1,5 @@
-import { corsHeaders, type Env } from '../config';
-import { createSupabaseService } from '../services/supabase';
+import { corsHeaders, type Env } from '../config.js';
+import { createSupabaseService } from '../services/supabase.js';
 
 export async function handleAssetDownload(request: Request): Promise<Response> {
   try {

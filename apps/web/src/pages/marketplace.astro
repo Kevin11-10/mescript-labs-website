@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import CheckoutModal from '../components/CheckoutModal.astro';
+import CustomModelViewer from '../components/CustomModelViewer.astro';
 import { fetchProducts } from '../lib/api';
 
 const products = await fetchProducts();
@@ -8,149 +9,212 @@ const products = await fetchProducts();
 
 <Layout title="Marketplace - Mescript Labs">
   <div class="min-h-screen">
-    <!-- Navigation -->
-    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
-          </div>
-          <div class="hidden md:block">
-            <div class="ml-10 flex items-baseline space-x-4">
-              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
-              <a href="/about" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
-              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
-              <a href="/marketplace" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
-              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
-              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <div class="market-shell mb-8 rounded-3xl p-6 md:p-8">
+          <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span class="pill mb-4">Curated 3D library</span>
+              <h1 class="text-3xl font-black tracking-tight text-white md:text-5xl">Marketplace</h1>
+            </div>
+            <div class="max-w-xl text-sm text-slate-300 md:text-base">
+              Premium game-ready assets, built for teams who want high-end look and production-ready speed.
             </div>
           </div>
         </div>
-      </div>
-    </nav>
 
-    <!-- Marketplace Section -->
-    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-7xl mx-auto">
-        <h1 class="text-4xl sm:text-5xl font-bold mb-4 text-accent-cyan">3D Asset Marketplace</h1>
-        <p class="text-xl text-text-secondary mb-8 max-w-2xl">
-          Browse our collection of premium 3D assets for game development. Each asset is optimized for real-time rendering and available in multiple formats.
-        </p>
-
-        <!-- Filters -->
-        <div class="glassmorphism rounded-lg p-4 mb-8">
-          <div class="flex flex-wrap gap-4">
-            <select class="bg-background border border-gray-700 rounded-md p-2 text-text-primary">
+        <div class="glassmorphism mb-8 rounded-2xl p-4">
+          <div class="flex flex-wrap gap-3">
+            <select class="rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-200 outline-none focus:border-accent-cyan">
               <option value="">All Categories</option>
               <option value="characters">Characters</option>
               <option value="environments">Environments</option>
               <option value="props">Props</option>
               <option value="vehicles">Vehicles</option>
             </select>
-            <select class="bg-background border border-gray-700 rounded-md p-2 text-text-primary">
-              <option value="">All Formats</option>
-              <option value="blend">Blender</option>
+            <select class="rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-200 outline-none focus:border-accent-cyan">
+              <option value="">Formats</option>
+              <option value="blend">Blend</option>
               <option value="fbx">FBX</option>
               <option value="obj">OBJ</option>
+              <option value="glb">GLB</option>
             </select>
-            <select class="bg-background border border-gray-700 rounded-md p-2 text-text-primary">
-              <option value="">Price Range</option>
-              <option value="0-25">$0 - $25</option>
-              <option value="25-50">$25 - $50</option>
+            <select class="rounded-xl border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-200 outline-none focus:border-accent-cyan">
+              <option value="">Price</option>
+              <option value="0-25">Under $25</option>
+              <option value="25-50">$25 – $50</option>
               <option value="50+">$50+</option>
             </select>
           </div>
         </div>
 
-        <!-- Product Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div id="product-grid" data-initial-products={JSON.stringify(products)} class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {products.map((product) => (
-            <div class="glassmorphism rounded-lg overflow-hidden">
-              <div class="h-48 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                <span class="text-6xl">{product.category === 'Characters' ? '🤖' : product.category === 'Environment' ? '🏢' : '⚙️'}</span>
+            <article class="catalog-card glassmorphism group overflow-hidden rounded-2xl">
+              <div class="preview-shell">
+                <CustomModelViewer
+                  modelUrl={product.model_url || product.r2_model_key || ''}
+                  modelUid={product.r2_model_key || product.id}
+                  title={product.title}
+                  compact={true}
+                />
               </div>
-              <div class="p-6">
-                <h3 class="text-xl font-bold mb-2">{product.title}</h3>
-                <p class="text-text-secondary mb-4">{product.description}</p>
-                <div class="flex flex-wrap gap-2 mb-4">
-                  <span class="bg-accent-cyan text-black text-xs px-2 py-1 rounded">{product.category}</span>
+
+              <div class="p-4">
+                <div class="mb-3 flex items-center justify-between gap-3">
+                  <span class="pill">{product.category}</span>
+                  <span class="text-xs uppercase tracking-[0.18em] text-slate-400">{Array.from(new Set(['glb', 'fbx', 'obj'])).slice(0, 2).join(' • ')}</span>
                 </div>
-                <div class="mb-4">
-                  <div class="text-sm text-text-secondary mb-1">License Tiers:</div>
-                  <div class="flex justify-between text-sm gap-2">
-                    <span>Individual: <span class="text-accent-amber">${product.individual_price.toFixed(2)}</span></span>
-                    <span>Indie: <span class="text-accent-amber">${product.indie_team_price.toFixed(2)}</span></span>
-                    <span>Studio: <span class="text-accent-amber">${product.aaa_studio_price.toFixed(2)}</span></span>
+
+                <a href={`/marketplace/${product.id}`} class="block text-lg font-bold text-white transition group-hover:text-accent-cyan">
+                  {product.title}
+                </a>
+                <p class="mt-2 line-clamp-3 text-sm text-slate-300">{product.description}</p>
+
+                <div class="meta-strip mt-4 pt-4">
+                  <div class="flex items-center justify-between text-sm text-slate-300">
+                    <span>From</span>
+                    <span class="text-lg font-bold text-accent-amber">${Number(product.individual_price ?? 0).toFixed(2)}</span>
                   </div>
                 </div>
-                <div class="flex gap-3">
-                  <a href={`/marketplace/${product.id}`} class="flex-1 text-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition">
-                    Details
+
+                <div class="mt-4 flex gap-2">
+                  <a href={`/marketplace/${product.id}`} class="flex-1 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-center text-sm font-semibold text-white transition hover:border-slate-500">
+                    View
                   </a>
-                  <button 
+                  <button
                     onclick={`showCheckoutModal('${product.id}', '${product.title}', ${product.individual_price}, ${product.indie_team_price}, ${product.aaa_studio_price})`}
-                    class="flex-1 bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition"
+                    class="flex-1 rounded-xl bg-gradient-to-r from-sky-400 to-violet-500 px-3 py-2 text-sm font-bold text-slate-950 transition hover:brightness-110"
                   >
-                    Purchase
+                    Buy
                   </button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>
     </section>
 
-    <!-- Footer -->
     <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto text-center">
         <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
       </div>
     </footer>
 
-    <!-- Checkout Modal -->
-    <CheckoutModal 
+    <CheckoutModal
       productId="default-product"
       productTitle="Sci-Fi Character Pack"
       individualPrice={15.00}
       indieTeamPrice={25.00}
       aaaStudioPrice={50.00}
-      formats={['blend', 'fbx', 'obj']}
+      formats={['blend', 'fbx', 'obj', 'glb']}
     />
   </div>
 </Layout>
 
-<script>
-  const openCheckout = (productId, productTitle, individualPrice, indieTeamPrice, aaaStudioPrice) => {
+<script type="module">
+  import { supabase, subscribeToProducts } from '../lib/supabase';
+
+  const grid = document.getElementById('product-grid');
+  const formatCurrency = (value) => Number(value ?? 0).toFixed(2);
+  const renderProductCard = (product) => `
+    <article class="catalog-card glassmorphism group overflow-hidden rounded-2xl">
+      <div class="preview-shell">
+        <div class="custom-model-viewer compact">
+          <div class="viewer-shell">
+            <div class="viewer-glow"></div>
+            <div class="viewer-grid"></div>
+            <div class="viewer-cube">
+              <span class="cube-face cube-front"></span>
+              <span class="cube-face cube-right"></span>
+              <span class="cube-face cube-top"></span>
+            </div>
+            <div class="viewer-badge">3D</div>
+            <div class="viewer-meta">
+              <span class="viewer-tag">R2</span>
+              <span class="viewer-title">${product.title || 'Product'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <span class="pill">${product.category || 'General'}</span>
+          <span class="text-xs uppercase tracking-[0.18em] text-slate-400">GLB • FBX</span>
+        </div>
+        <a href="/marketplace/${product.id}" class="block text-lg font-bold text-white transition group-hover:text-accent-cyan">
+          ${product.title || 'Untitled Product'}
+        </a>
+        <p class="mt-2 line-clamp-3 text-sm text-slate-300">${product.description || ''}</p>
+        <div class="meta-strip mt-4 pt-4">
+          <div class="flex items-center justify-between text-sm text-slate-300">
+            <span>From</span>
+            <span class="text-lg font-bold text-accent-amber">$${formatCurrency(product.individual_price)}</span>
+          </div>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <a href="/marketplace/${product.id}" class="flex-1 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-center text-sm font-semibold text-white transition hover:border-slate-500">
+            View
+          </a>
+          <button
+            data-product-id="${product.id}"
+            data-product-title="${product.title || 'Product'}"
+            data-price-individual="${product.individual_price ?? 0}"
+            data-price-indie="${product.indie_team_price ?? 0}"
+            data-price-studio="${product.aaa_studio_price ?? 0}"
+            class="buy-button flex-1 rounded-xl bg-gradient-to-r from-sky-400 to-violet-500 px-3 py-2 text-sm font-bold text-slate-950 transition hover:brightness-110"
+          >
+            Buy
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+
+  const renderProducts = (productsToRender = []) => {
+    if (!grid) return;
+
+    if (!Array.isArray(productsToRender) || productsToRender.length === 0) {
+      grid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-8 text-center text-slate-300">No products available yet.</div>';
+      return;
+    }
+
+    grid.innerHTML = productsToRender.map(renderProductCard).join('');
+
+    for (const button of grid.querySelectorAll('.buy-button')) {
+      button.addEventListener('click', () => {
+        const productId = button.dataset.productId;
+        const productTitle = button.dataset.productTitle;
+        const individualPrice = Number(button.dataset.priceIndividual || 0);
+        const indiePrice = Number(button.dataset.priceIndie || 0);
+        const studioPrice = Number(button.dataset.priceStudio || 0);
+        window.showCheckoutModal(productId, productTitle, individualPrice, indiePrice, studioPrice);
+      });
+    }
+  };
+
+  try {
+    const initialProducts = JSON.parse(grid?.dataset?.initialProducts || '[]');
+    renderProducts(initialProducts);
+  } catch {
+    renderProducts([]);
+  }
+
+  if (supabase) {
+    const stop = subscribeToProducts((nextProducts) => {
+      renderProducts(nextProducts);
+    });
+    window.addEventListener('beforeunload', stop);
+  }
+
+  window.showCheckoutModal = (productId, productTitle, individualPrice, indieTeamPrice, aaaStudioPrice) => {
     const modal = document.getElementById('checkout-modal');
     if (!modal) return;
 
-    modal.dataset.productId = productId;
-    modal.dataset.productTitle = productTitle;
-    modal.dataset.individualPrice = String(individualPrice);
-    modal.dataset.indieTeamPrice = String(indieTeamPrice);
-    modal.dataset.aaaStudioPrice = String(aaaStudioPrice);
-
-    const titleEl = modal.querySelector('h2');
-    if (titleEl) titleEl.textContent = `Purchase ${productTitle}`;
-
-    const form = document.getElementById('checkout-form');
-    if (form) {
-      const select = document.getElementById('license-tier');
-      if (select) {
-        select.innerHTML = `
-          <option value="individual">Individual - $${Number(individualPrice).toFixed(2)}</option>
-          <option value="indie_team">Indie Team - $${Number(indieTeamPrice).toFixed(2)}</option>
-          <option value="aaa_studio">AAA Studio - $${Number(aaaStudioPrice).toFixed(2)}</option>
-        `;
-      }
-    }
-
+    modal.dataset.productId = String(productId);
+    modal.dataset.productTitle = String(productTitle);
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-  };
-
-  window.showCheckoutModal = (productId, productTitle, individualPrice, indieTeamPrice, aaaStudioPrice) => {
-    openCheckout(productId, productTitle, individualPrice, indieTeamPrice, aaaStudioPrice);
   };
 </script>

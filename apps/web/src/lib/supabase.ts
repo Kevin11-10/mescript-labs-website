@@ -80,6 +80,28 @@ export interface Product {
   updated_at: string;
 }
 
+export function formatCatalogProduct(product: any): Product {
+  return {
+    id: String(product?.id ?? '0'),
+    title: product?.title ?? 'Untitled Product',
+    description: product?.description ?? '',
+    category: product?.category ?? 'General',
+    individual_price: Number(product?.individual_price ?? product?.individualPrice ?? 0),
+    indie_team_price: Number(product?.indie_team_price ?? product?.indieTeamPrice ?? 0),
+    aaa_studio_price: Number(product?.aaa_studio_price ?? product?.aaaStudioPrice ?? 0),
+    currency: product?.currency ?? 'USD',
+    r2_model_key: product?.r2_model_key ?? product?.r2ModelKey,
+    model_url: product?.model_url ?? product?.modelUrl ?? product?.sketchfab_model_uid ?? product?.sketchfabModelUid,
+    sketchfab_model_uid: product?.sketchfab_model_uid ?? product?.sketchfabModelUid,
+    github_asset_id: product?.github_asset_id ?? product?.githubAssetId,
+    thumbnail_url: product?.thumbnail_url ?? product?.thumbnailUrl,
+    metadata: product?.metadata ?? {},
+    is_active: Boolean(product?.is_active ?? product?.isActive ?? true),
+    created_at: product?.created_at ?? product?.createdAt ?? new Date().toISOString(),
+    updated_at: product?.updated_at ?? product?.updatedAt ?? new Date().toISOString(),
+  };
+}
+
 export async function getProducts(): Promise<Product[]> {
   if (!supabase) {
     return [];
@@ -100,7 +122,7 @@ export async function getProducts(): Promise<Product[]> {
     return [];
   }
 
-  return (data ?? []) as Product[];
+  return (data ?? []).map(formatCatalogProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -123,7 +145,29 @@ export async function getProductById(id: string): Promise<Product | null> {
     return null;
   }
 
-  return data as Product | null;
+  return data ? formatCatalogProduct(data) : null;
+}
+
+export function subscribeToProducts(onProducts: (products: Product[]) => void): () => void {
+  if (!supabase) {
+    return () => {};
+  }
+
+  const channel = supabase
+    .channel('products-marketplace')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'products' },
+      async () => {
+        const nextProducts = await getProducts();
+        onProducts(nextProducts);
+      },
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
 
 export interface SponsorshipGoal {

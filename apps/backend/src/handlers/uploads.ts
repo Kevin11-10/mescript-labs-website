@@ -1,6 +1,6 @@
-import { createR2Service } from '../services/r2';
-import { createSupabaseService } from '../services/supabase';
-import { corsHeaders, type Env } from '../config';
+import { createR2Service } from '../services/r2.js';
+import { createSupabaseService } from '../services/supabase.js';
+import { corsHeaders, type Env } from '../config.js';
 
 function jsonResponse(body: any, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -45,7 +45,7 @@ export async function handleUploadComplete(request: Request) {
 
     if (!key) return jsonResponse({ error: 'key is required' }, 400);
 
-    const r2PublicBase = env.R2_PUBLIC_URL;
+    const r2PublicBase = env.HUGGINGFACE_DATASET_PUBLIC_URL || env.HUGGINGFACE_DATASET_BASE_URL || env.R2_PUBLIC_URL;
     const fileUrl = r2PublicBase ? `${r2PublicBase.replace(/\/$/, '')}/${key}` : undefined;
 
     // Validate existence by HEAD request
@@ -88,7 +88,7 @@ export async function handleUploadStatus(request: Request) {
     if (!key) return jsonResponse({ error: 'key query param required' }, 400);
 
     const env: Env = (request as any).env;
-    const r2PublicBase = env.R2_PUBLIC_URL;
+    const r2PublicBase = env.HUGGINGFACE_DATASET_PUBLIC_URL || env.HUGGINGFACE_DATASET_BASE_URL || env.R2_PUBLIC_URL;
     const fileUrl = r2PublicBase ? `${r2PublicBase.replace(/\/$/, '')}/${key}` : undefined;
 
     if (fileUrl) {
