@@ -12,16 +12,16 @@ if (fs.existsSync(distPath)) {
 } else {
   // Build an inline runtime using dynamic imports (no TypeScript-only syntax)
   const { Router } = await import('itty-router');
-  const { corsHeaders, validateEnv } = await import('./config.js');
-  const { handleHealth } = await import('./handlers/health.js');
-  const { handleCheckoutCreate } = await import('./handlers/checkout.js');
-  const { handleProductList, handleProductById } = await import('./handlers/products.js');
-  const { handleCreemWebhook } = await import('./handlers/webhooks.js');
-  const { handleAssetDownload } = await import('./handlers/assets.js');
-  const { handleUploadRequest, handleUploadComplete, handleUploadStatus } = await import('./handlers/uploads.js');
-  const { handleMockBuy } = await import('./handlers/mock.js');
-  const { handleAdminRepoStatus, handleAdminContentUpdate } = await import('./handlers/admin.js');
-  const { handleAiGenerate, handleAiApprove } = await import('./handlers/ai.js');
+  const { corsHeaders, validateEnv } = await import('./config.ts');
+  const { handleHealth } = await import('./handlers/health.ts');
+  const { handleCheckoutCreate } = await import('./handlers/checkout.ts');
+  const { handleProductList, handleProductById } = await import('./handlers/products.ts');
+  const { handleCreemWebhook } = await import('./handlers/webhooks.ts');
+  const { handleAssetDownload } = await import('./handlers/assets.ts');
+  const { handleUploadRequest, handleUploadComplete, handleUploadStatus } = await import('./handlers/uploads.ts');
+  const { handleMockBuy } = await import('./handlers/mock.ts');
+  const { handleAdminRepoStatus, handleAdminContentUpdate } = await import('./handlers/admin.ts');
+  const { handleAiGenerate, handleAiApprove } = await import('./handlers/ai.ts');
 
   const router = Router();
 
