@@ -9,7 +9,7 @@
     "deploy": "wrangler deploy",
     "build": "tsc",
     "start": "node dist/server.js",
-    "render-build": "npm ci && npm run build",
+    "render-build": "npm install && npm run build",
     "render-start": "node dist/server.js"
   },
   "dependencies": {
