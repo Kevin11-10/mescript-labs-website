@@ -1,0 +1,56 @@
+services:
+  - type: web
+    name: mescript-labs-web
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd apps/web && npm ci && npm run build
+    startCommand: cd apps/web && npm run start
+    envVars:
+      - key: API_BASE_URL
+        value: "https://YOUR_BACKEND_URL"
+      - key: MODEL_VIEWER_BASE_URL
+        value: "https://app.mescriptlabs.workers.dev/3d"
+
+  - type: web
+    name: mescript-labs-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd apps/backend && npm ci && npm run render-build
+    startCommand: cd apps/backend && npm run render-start
+    envVars:
+      - key: SUPABASE_URL
+        secure: true
+        value: ""
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        secure: true
+        value: ""
+      - key: HUGGINGFACE_API_KEY
+        secure: true
+        value: ""
+      - key: HUGGINGFACE_DATASET_REPO
+        value: "MescriptLabs/mescript-models"
+      - key: HUGGINGFACE_DATASET_PUBLIC_URL
+        value: "https://huggingface.co/datasets/MescriptLabs/mescript-models/resolve/main"
+      - key: HUGGINGFACE_DATASET_BASE_URL
+        value: "https://huggingface.co/datasets/MescriptLabs/mescript-models/resolve/main"
+      - key: HUGGINGFACE_PRIVATE_DATASET_URL
+        secure: true
+        value: ""
+      - key: CREEM_API_KEY
+        secure: true
+        value: ""
+      - key: CREEM_WEBHOOK_SECRET
+        secure: true
+        value: ""
+      - key: GITHUB_TOKEN
+        secure: true
+        value: ""
+      - key: GITHUB_WRITE_TOKEN
+        secure: true
+        value: ""
+      - key: GITHUB_ASSET_REPO
+        value: "MescriptLabs/private-assets"
+      - key: API_BASE_URL
+        value: "https://YOUR_BACKEND_URL"
