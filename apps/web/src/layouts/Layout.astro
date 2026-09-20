@@ -1,4 +1,5 @@
 ---
+import NavMenu from '../components/NavMenu.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -23,6 +24,7 @@ const {
     <title>{title}</title>
   </head>
   <body class="bg-background text-text-primary min-h-screen">
+    <NavMenu />
     <slot />
   </body>
 </html>

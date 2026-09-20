@@ -7,6 +7,7 @@ interface Props {
   autospin?: boolean;
   uiControls?: boolean;
   uiInfos?: boolean;
+  compact?: boolean;
 }
 
 const {
@@ -17,37 +18,41 @@ const {
   autospin = false,
   uiControls = true,
   uiInfos = true,
+  compact = false,
 } = Astro.props;
 
 const hasModel = Boolean(modelUrl || modelUid);
 const resolvedModelUrl = modelUrl || (modelUid ? `https://example.com/models/${modelUid}` : '');
 ---
 
-<div class="custom-model-viewer w-full h-96 rounded-lg overflow-hidden glassmorphism">
+<div class={`custom-model-viewer ${compact ? 'compact' : ''}`}>
   {hasModel ? (
-    <div class="flex h-full flex-col items-center justify-center gap-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-6 text-center">
-      <div class="text-5xl">3D</div>
-      <div>
-        <p class="text-xl font-bold text-accent-cyan">{title}</p>
-        <p class="mt-2 text-sm text-text-secondary">Cloudflare R2 self-hosted model</p>
+    <div class="viewer-shell">
+      <div class="viewer-glow"></div>
+      <div class="viewer-grid"></div>
+      <div class="viewer-cube">
+        <span class="cube-face cube-front"></span>
+        <span class="cube-face cube-right"></span>
+        <span class="cube-face cube-top"></span>
       </div>
-      <div class="flex flex-wrap items-center justify-center gap-3">
-        <span class="rounded-full border border-accent-cyan px-3 py-1 text-xs uppercase tracking-wide text-accent-cyan">R2 asset</span>
-        <span class="rounded-full border border-gray-600 px-3 py-1 text-xs uppercase tracking-wide text-gray-200">Custom embed</span>
+      <div class="viewer-badge">3D</div>
+      <div class="viewer-meta">
+        <span class="viewer-tag">R2</span>
+        <span class="viewer-title">{title}</span>
       </div>
       {resolvedModelUrl ? (
         <a
           href={resolvedModelUrl}
           target="_blank"
           rel="noreferrer"
-          class="inline-flex items-center rounded-md bg-accent-cyan px-4 py-2 text-sm font-bold text-black transition hover:bg-cyan-400"
+          class="viewer-link"
         >
-          Open model file
+          Open model
         </a>
       ) : null}
     </div>
   ) : (
-    <div class="flex h-full items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-6 text-center">
+    <div class="viewer-empty">
       <div>
         <p class="text-xl font-bold text-accent-cyan">Model preview unavailable</p>
         <p class="mt-2 text-sm text-text-secondary">Upload the model to Cloudflare R2 and add a public URL to the product metadata.</p>
@@ -59,5 +64,165 @@ const resolvedModelUrl = modelUrl || (modelUid ? `https://example.com/models/${m
 <style>
   .custom-model-viewer {
     position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 220px;
+    overflow: hidden;
+    border-radius: 1rem;
+  }
+
+  .custom-model-viewer.compact {
+    min-height: 180px;
+  }
+
+  .viewer-shell,
+  .viewer-empty {
+    position: relative;
+    display: flex;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 1rem;
+    background:
+      radial-gradient(circle at top, rgba(125, 211, 252, 0.25), transparent 35%),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(17, 24, 39, 0.85));
+    border: 1px solid rgba(125, 211, 252, 0.18);
+  }
+
+  .viewer-grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: radial-gradient(circle at center, black 42%, transparent 100%);
+  }
+
+  .viewer-glow {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(125, 211, 252, 0.38), rgba(168, 85, 247, 0.08), transparent 70%);
+    filter: blur(20px);
+  }
+
+  .viewer-cube {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    transform-style: preserve-3d;
+    transform: rotateX(-18deg) rotateY(28deg) rotateZ(12deg);
+    animation: spinCube 10s linear infinite;
+  }
+
+  .cube-face {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(125, 211, 252, 0.9);
+    background: rgba(14, 116, 144, 0.14);
+    box-shadow: inset 0 0 24px rgba(125, 211, 252, 0.1);
+  }
+
+  .cube-front { transform: translateZ(28px); }
+  .cube-right { transform: rotateY(90deg) translateZ(28px); }
+  .cube-top { transform: rotateX(90deg) translateZ(28px); }
+
+  .viewer-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 9999px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(125, 211, 252, 0.4);
+    color: #7dd3fc;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+  }
+
+  .viewer-meta {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 9999px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    backdrop-filter: blur(8px);
+  }
+
+  .viewer-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 22px;
+    border-radius: 9999px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #bbf7d0;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .viewer-title {
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #e2e8f0;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .viewer-link {
+    position: absolute;
+    left: 50%;
+    bottom: 62px;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.8rem;
+    background: rgba(14, 165, 233, 0.2);
+    border: 1px solid rgba(125, 211, 252, 0.45);
+    color: #e0f2fe;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: transform 0.2s ease;
+  }
+
+  .viewer-link:hover {
+    transform: translateX(-50%) translateY(-1px);
+  }
+
+  @keyframes spinCube {
+    0% {
+      transform: rotateX(-18deg) rotateY(0deg) rotateZ(12deg);
+    }
+    50% {
+      transform: rotateX(-18deg) rotateY(180deg) rotateZ(12deg);
+    }
+    100% {
+      transform: rotateX(-18deg) rotateY(360deg) rotateZ(12deg);
+    }
   }
 </style>

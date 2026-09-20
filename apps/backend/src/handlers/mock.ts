@@ -1,4 +1,4 @@
-import { corsHeaders } from '../config';
+import { corsHeaders } from '../config.js';
 
 interface MockBuyRequest {
   product_id: string;

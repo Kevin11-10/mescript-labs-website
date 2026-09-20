@@ -1,5 +1,5 @@
-import type { Env } from '../config';
-import { GitHubService } from '../services/github';
+import type { Env } from '../config.js';
+import { GitHubService } from '../services/github.js';
 
 function requiresAdminSecret(request: Request, env: Env): boolean {
   const provided = request.headers.get('x-admin-secret') || request.headers.get('authorization')?.replace('Bearer ', '');

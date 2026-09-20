@@ -1,4 +1,4 @@
-import type { Env } from '../config';
+import type { Env } from '../config.js';
 
 interface AiGenerateRequest {
   prompt?: string;

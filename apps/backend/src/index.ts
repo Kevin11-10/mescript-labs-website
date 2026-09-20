@@ -1,14 +1,14 @@
 import { Router } from 'itty-router';
-import { corsHeaders, validateEnv, type Env } from './config';
-import { handleHealth } from './handlers/health';
-import { handleCheckoutCreate } from './handlers/checkout';
-import { handleProductList, handleProductById } from './handlers/products';
-import { handleCreemWebhook } from './handlers/webhooks';
-import { handleAssetDownload } from './handlers/assets';
-import { handleUploadRequest, handleUploadComplete, handleUploadStatus } from './handlers/uploads';
-import { handleMockBuy } from './handlers/mock';
-import { handleAdminRepoStatus, handleAdminContentUpdate } from './handlers/admin';
-import { handleAiGenerate, handleAiApprove } from './handlers/ai';
+import { corsHeaders, validateEnv, type Env } from './config.js';
+import { handleHealth } from './handlers/health.js';
+import { handleCheckoutCreate } from './handlers/checkout.js';
+import { handleProductList, handleProductById } from './handlers/products.js';
+import { handleCreemWebhook } from './handlers/webhooks.js';
+import { handleAssetDownload } from './handlers/assets.js';
+import { handleUploadRequest, handleUploadComplete, handleUploadStatus } from './handlers/uploads.js';
+import { handleMockBuy } from './handlers/mock.js';
+import { handleAdminRepoStatus, handleAdminContentUpdate } from './handlers/admin.js';
+import { handleAiGenerate, handleAiApprove } from './handlers/ai.js';
 
 const router = Router();
 

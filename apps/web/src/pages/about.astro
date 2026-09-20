@@ -1,96 +1,109 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const teamMembers = [
+  {
+    name: 'Maya Chen',
+    role: 'Art Director',
+    bio: 'Shapes the visual language behind each collection, from silhouette and material choices to final polish.',
+    focus: ['3D concept', 'materials', 'visual direction'],
+  },
+  {
+    name: 'Leo Romero',
+    role: 'Technical Artist',
+    bio: 'Builds clean pipelines, optimizes assets for real-time workflows, and keeps production quality consistent.',
+    focus: ['retopology', 'optimization', 'pipeline'],
+  },
+  {
+    name: 'Nia Patel',
+    role: 'Environment Designer',
+    bio: 'Creates modular spaces and immersive props that feel lived-in without losing clarity or performance.',
+    focus: ['World building', 'props', 'lighting'],
+  },
+  {
+    name: 'Ari Brooks',
+    role: 'Product & UX',
+    bio: 'Connects the catalog experience, storefront flow, and customer journey so the work feels premium and clear.',
+    focus: ['UX', 'catalogs', 'commerce'],
+  },
+];
 ---
 
 <Layout title="About Mescript Labs">
   <div class="min-h-screen">
-    <!-- Navigation -->
-    <nav class="glassmorphism fixed top-0 left-0 right-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <a href="/" class="text-2xl font-bold text-accent-cyan">Mescript Labs</a>
-          </div>
-          <div class="hidden md:block">
-            <div class="ml-10 flex items-baseline space-x-4">
-              <a href="/" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Home</a>
-              <a href="/about" class="text-white hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">About</a>
-              <a href="/portfolio" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
-              <a href="/marketplace" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
-              <a href="/sponsorships" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Sponsorships</a>
-              <a href="/contact" class="text-gray-300 hover:text-accent-cyan px-3 py-2 rounded-md text-sm font-medium">Contact</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- About Section -->
     <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-4xl mx-auto">
-        <h1 class="text-4xl sm:text-5xl font-bold mb-8 text-accent-cyan">About Mescript Labs</h1>
-        
-        <div class="glassmorphism rounded-lg p-8 mb-8">
-          <h2 class="text-2xl font-bold mb-4">Our Mission</h2>
-          <p class="text-text-secondary mb-4">
-            Mescript Labs is dedicated to providing high-quality 3D assets and resources for game developers, 
-            indie studios, and creative professionals. We believe that great art should be accessible to everyone, 
-            regardless of budget or team size.
+      <div class="mx-auto max-w-6xl">
+        <div class="mb-12 text-center">
+          <span class="pill mb-4">Built by creators</span>
+          <h1 class="text-4xl font-black tracking-tight text-accent-cyan sm:text-5xl">About Mescript Labs</h1>
+        </div>
+
+        <div class="glassmorphism mb-10 rounded-3xl p-7 md:p-10">
+          <h2 class="mb-4 text-2xl font-bold text-white md:text-3xl">We’re a talented studio with a hands-on approach.</h2>
+          <p class="mb-4 text-base leading-7 text-slate-300 md:text-lg">
+            Mescript Labs is a small, multidisciplinary team of artists, technical thinkers, and designers building premium 3D assets for ambitious studios and solo creators.
           </p>
-          <p class="text-text-secondary">
-            Our team of experienced 3D artists and developers create assets that are not only visually stunning 
-            but also optimized for real-time rendering, ensuring your games run smoothly while looking amazing.
+          <p class="text-base leading-7 text-slate-300 md:text-lg">
+            None of us have worked in or with AAA studios, and that is part of the advantage. We focus on practical, high-quality work built for real production needs: strong visuals, clean structure, and tools that teams can actually use.
           </p>
         </div>
 
-        <div class="glassmorphism rounded-lg p-8 mb-8">
-          <h2 class="text-2xl font-bold mb-4">Our Story</h2>
-          <p class="text-text-secondary mb-4">
-            Founded in 2024, Mescript Labs started with a simple idea: to bridge the gap between professional 
-            3D art and indie game development. Our founders, having worked in both AAA studios and indie 
-            projects, understood the challenges developers face when sourcing high-quality assets.
-          </p>
-          <p class="text-text-secondary">
-            Today, we continue to expand our library of assets, always focusing on quality, usability, and 
-            fair pricing that scales with your project's needs.
-          </p>
-        </div>
+        <div class="glassmorphism mb-10 rounded-3xl p-7 md:p-10">
+          <div class="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.2em] text-accent-cyan">The team</p>
+              <h2 class="mt-2 text-2xl font-bold text-white md:text-3xl">People behind the work</h2>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" class="team-nav-btn rounded-full border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500" data-direction="prev" aria-label="Previous team members">←</button>
+              <button type="button" class="team-nav-btn rounded-full border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-500" data-direction="next" aria-label="Next team members">→</button>
+            </div>
+          </div>
 
-        <div class="glassmorphism rounded-lg p-8 mb-8">
-          <h2 class="text-2xl font-bold mb-4">Our Values</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 class="text-xl font-bold mb-2 text-accent-cyan">Quality First</h3>
-              <p class="text-text-secondary">Every asset is rigorously tested and optimized for game engines.</p>
-            </div>
-            <div>
-              <h3 class="text-xl font-bold mb-2 text-accent-cyan">Accessibility</h3>
-              <p class="text-text-secondary">Flexible licensing options for projects of all sizes.</p>
-            </div>
-            <div>
-              <h3 class="text-xl font-bold mb-2 text-accent-cyan">Community</h3>
-              <p class="text-text-secondary">Supporting indie developers and fostering creativity.</p>
-            </div>
-            <div>
-              <h3 class="text-xl font-bold mb-2 text-accent-cyan">Innovation</h3>
-              <p class="text-text-secondary">Continuously exploring new techniques and technologies.</p>
+          <div class="team-slider overflow-hidden">
+            <div class="team-track flex gap-5 transition-transform duration-300 ease-out">
+              {teamMembers.map((member) => (
+                <article class="team-card min-w-[280px] max-w-[280px] flex-1 rounded-2xl border border-slate-700 bg-slate-950/70 p-5 shadow-xl shadow-slate-950/20 md:min-w-[320px] md:max-w-[320px]">
+                  <div class="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400/30 to-violet-500/30 text-xl font-black text-accent-cyan">
+                    {member.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}
+                  </div>
+                  <div class="mb-3">
+                    <h3 class="text-xl font-bold text-white">{member.name}</h3>
+                    <p class="text-sm font-medium uppercase tracking-[0.15em] text-accent-cyan">{member.role}</p>
+                  </div>
+                  <p class="mb-5 text-sm leading-6 text-slate-300">{member.bio}</p>
+                  <div class="flex flex-wrap gap-2">
+                    {member.focus.map((item) => (
+                      <span class="rounded-full border border-slate-700 bg-slate-900/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-200">{item}</span>
+                    ))}
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
         </div>
 
-        <div class="glassmorphism rounded-lg p-8">
-          <h2 class="text-2xl font-bold mb-4">Contact Us</h2>
-          <p class="text-text-secondary mb-4">
-            Have questions or want to collaborate? We'd love to hear from you!
-          </p>
-          <a href="/contact" class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-3 px-8 rounded-lg transition inline-block">
-            Get in Touch
-          </a>
+        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div class="glassmorphism rounded-2xl p-6">
+            <h3 class="mb-2 text-xl font-bold text-accent-cyan">Quality first</h3>
+            <p class="text-sm leading-6 text-slate-300">Every asset is built to look premium, remain usable, and translate cleanly into production pipelines.</p>
+          </div>
+          <div class="glassmorphism rounded-2xl p-6">
+            <h3 class="mb-2 text-xl font-bold text-accent-cyan">Practical creativity</h3>
+            <p class="text-sm leading-6 text-slate-300">We prefer grounded, useful design over noise, scale, and complexity that slows teams down.</p>
+          </div>
+          <div class="glassmorphism rounded-2xl p-6">
+            <h3 class="mb-2 text-xl font-bold text-accent-cyan">Built for teams</h3>
+            <p class="text-sm leading-6 text-slate-300">We design with solo devs, small studios, and growing teams in mind—without sacrificing polish.</p>
+          </div>
+          <div class="glassmorphism rounded-2xl p-6">
+            <h3 class="mb-2 text-xl font-bold text-accent-cyan">Clear communication</h3>
+            <p class="text-sm leading-6 text-slate-300">The focus is on making the workflow smooth, fast, and easy to trust from first purchase to final build.</p>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Footer -->
     <footer class="glassmorphism py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto text-center">
         <p class="text-text-secondary">&copy; 2024 Mescript Labs. All rights reserved.</p>
@@ -98,3 +111,35 @@ import Layout from '../layouts/Layout.astro';
     </footer>
   </div>
 </Layout>
+
+<script>
+  const track = document.querySelector('.team-track');
+  const navButtons = document.querySelectorAll('.team-nav-btn');
+
+  if (track && navButtons.length) {
+    const cards = [...track.children];
+    const gap = 20;
+    const cardWidth = cards[0]?.getBoundingClientRect().width ?? 320;
+    let offset = 0;
+    const maxOffset = Math.max(0, cards.length * cardWidth + (cards.length - 1) * gap - track.parentElement.clientWidth);
+
+    const updateTrack = () => {
+      track.style.transform = `translateX(-${offset}px)`;
+    };
+
+    navButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const direction = button.dataset.direction === 'next' ? 1 : -1;
+        const step = cardWidth + gap;
+        offset = Math.min(Math.max(offset + direction * step, 0), maxOffset);
+        updateTrack();
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      const nextMaxOffset = Math.max(0, cards.length * cardWidth + (cards.length - 1) * gap - track.parentElement.clientWidth);
+      offset = Math.min(offset, nextMaxOffset);
+      updateTrack();
+    });
+  }
+</script>

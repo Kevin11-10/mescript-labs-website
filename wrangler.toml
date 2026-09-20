@@ -1,0 +1,11 @@
+name = "mescript-labs-root"
+main = "apps/backend/src/index.ts"
+compatibility_date = "2026-09-20"
+
+# Root-level wrangler config to ensure CI/CD systems running from the repository root
+# can locate the Worker entry point. The actual per-app config remains in
+# `apps/backend/wrangler.toml` for local development and manual deploys.
+
+[vars]
+# Minimal allowed origins for CI logs; production env overrides should be used in Render
+ALLOWED_ORIGINS = "https://mescriptlabs.com,https://www.mescriptlabs.com"

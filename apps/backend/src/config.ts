@@ -22,6 +22,13 @@ export interface Env {
   AI_MODEL?: string;
   HUGGINGFACE_API_KEY?: string;
   HUGGINGFACE_MODEL?: string;
+  HUGGINGFACE_DATASET_REPO?: string;
+  HUGGINGFACE_DATASET_PUBLIC_URL?: string;
+  HUGGINGFACE_DATASET_BASE_URL?: string;
+  HUGGINGFACE_PRIVATE_DATASET_URL?: string;
+  HF_TOKEN?: string;
+  HF_DATASET_REPO?: string;
+  HF_DATASET_PUBLIC_URL?: string;
   AI_ADMIN_APPROVAL_REQUIRED?: string;
   ADMIN_SESSION_SECRET?: string;
   ADMIN_JWT_SECRET?: string;

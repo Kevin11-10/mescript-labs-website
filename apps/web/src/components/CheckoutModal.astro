@@ -10,63 +10,72 @@ interface Props {
   formats: string[];
 }
 
-const { 
-  productId, 
+const {
+  productId,
   productTitle,
   individualPrice,
   indieTeamPrice,
   aaaStudioPrice,
-  formats = ['blend', 'fbx', 'obj']
+  formats = ['blend', 'fbx', 'obj', 'glb']
 } = Astro.props;
+
+const normalizedFormats = Array.from(new Set(['glb', ...formats].map((format) => format.toLowerCase())));
 ---
 
-<div id="checkout-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-  <div class="bg-card rounded-lg p-6 max-w-md w-full mx-4 glassmorphism">
-    <h2 class="text-2xl font-bold mb-4 text-accent-cyan">Purchase {productTitle}</h2>
-    
+<div id="checkout-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+  <div class="glassmorphism rounded-2xl p-6 max-w-md w-full mx-4">
+    <div class="flex items-start justify-between gap-4 mb-5">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-accent-cyan/80">License checkout</p>
+        <h2 class="text-2xl font-bold mt-2 text-text-primary">Purchase {productTitle}</h2>
+      </div>
+      <button type="button" id="close-modal" class="rounded-full border border-slate-600 px-3 py-1 text-sm text-slate-200 hover:border-slate-400">✕</button>
+    </div>
+
     <form id="checkout-form" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium mb-2">License Tier</label>
-        <select id="license-tier" class="w-full bg-background border border-gray-700 rounded-md p-2 text-text-primary">
+        <label class="mb-2 block text-sm font-medium text-slate-200">License Tier</label>
+        <select id="license-tier" class="w-full rounded-xl border border-slate-700 bg-slate-950/80 p-3 text-text-primary focus:border-accent-cyan focus:outline-none">
           <option value="individual">Individual - ${individualPrice.toFixed(2)}</option>
           <option value="indie_team">Indie Team - ${indieTeamPrice.toFixed(2)}</option>
           <option value="aaa_studio">AAA Studio - ${aaaStudioPrice.toFixed(2)}</option>
         </select>
       </div>
-      
+
       <div>
-        <label class="block text-sm font-medium mb-2">Format</label>
-        <select id="format" class="w-full bg-background border border-gray-700 rounded-md p-2 text-text-primary">
-          {formats.map(format => (
+        <label class="mb-2 block text-sm font-medium text-slate-200">Format</label>
+        <select id="format" class="w-full rounded-xl border border-slate-700 bg-slate-950/80 p-3 text-text-primary focus:border-accent-cyan focus:outline-none">
+          {normalizedFormats.map((format) => (
             <option value={format}>{format.toUpperCase()}</option>
           ))}
         </select>
       </div>
-      
+
       <div>
-        <label class="block text-sm font-medium mb-2">Email</label>
-        <input 
-          type="email" 
-          id="email" 
+        <label class="mb-2 block text-sm font-medium text-slate-200">Email</label>
+        <input
+          type="email"
+          id="email"
           required
-          class="w-full bg-background border border-gray-700 rounded-md p-2 text-text-primary"
+          class="w-full rounded-xl border border-slate-700 bg-slate-950/80 p-3 text-text-primary placeholder:text-slate-400 focus:border-accent-cyan focus:outline-none"
           placeholder="your@email.com"
         />
+        <p class="mt-2 text-xs text-slate-400">Required for download access and future product updates.</p>
       </div>
-      
-      <div class="flex space-x-3">
-        <button 
-          type="button" 
-          id="close-modal"
-          class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition"
+
+      <div class="flex gap-3 pt-2">
+        <button
+          type="button"
+          id="close-modal-secondary"
+          class="flex-1 rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-3 font-semibold text-slate-200 transition hover:border-slate-500"
         >
           Cancel
         </button>
-        <button 
-          type="submit" 
-          class="flex-1 bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition"
+        <button
+          type="submit"
+          class="flex-1 rounded-xl bg-gradient-to-r from-sky-400 to-violet-500 px-4 py-3 font-bold text-slate-950 transition hover:brightness-110"
         >
-          Proceed to Checkout
+          Proceed
         </button>
       </div>
     </form>
@@ -74,46 +83,96 @@ const {
 </div>
 
 <script define:vars={{ productId }}>
-  const modal = document.getElementById('checkout-modal') as HTMLDivElement;
-  const form = document.getElementById('checkout-form') as HTMLFormElement;
-  const closeBtn = document.getElementById('close-modal') as HTMLButtonElement;
+  const modal = document.getElementById('checkout-modal');
+  const form = document.getElementById('checkout-form');
+  const closeBtn = document.getElementById('close-modal');
+  const closeSecondaryBtn = document.getElementById('close-modal-secondary');
+  const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:8787' : 'https://app.mescriptlabs.workers.dev';
 
-  // Show modal when called
-  (window as any).showCheckoutModal = (selectedProductId = productId, selectedProductTitle = productTitle) => {
+  function closeModal() {
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  (window).showCheckoutModal = (
+    selectedProductId = productId,
+    selectedProductTitle = productTitle,
+    selectedLicenseTier = 'individual',
+    selectedFormat = 'glb'
+  ) => {
+    if (!modal) return;
+
     modal.dataset.productId = String(selectedProductId);
     modal.dataset.productTitle = String(selectedProductTitle);
+
+    const licenseSelect = document.getElementById('license-tier');
+    const formatSelect = document.getElementById('format');
+
+    if (licenseSelect) {
+      const nextTier = ['individual', 'indie_team', 'aaa_studio'].includes(selectedLicenseTier) ? selectedLicenseTier : 'individual';
+      licenseSelect.value = nextTier;
+    }
+
+    if (formatSelect) {
+      const nextFormat = ['glb', 'fbx', 'obj', 'blend'].includes(selectedFormat) ? selectedFormat : 'glb';
+      formatSelect.value = nextFormat;
+    }
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   };
 
-  // Close modal
-  closeBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  });
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (closeSecondaryBtn) closeSecondaryBtn.addEventListener('click', closeModal);
 
-  // Handle form submission
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    const currentProductId = modal.dataset.productId || productId;
-    const licenseTier = (document.getElementById('license-tier') as HTMLSelectElement).value;
-    const format = (document.getElementById('format') as HTMLSelectElement).value;
-    const email = (document.getElementById('email') as HTMLInputElement).value;
+      const currentProductId = modal?.dataset.productId || productId;
+      const licenseTier = document.getElementById('license-tier')?.value || 'individual';
+      const format = document.getElementById('format')?.value || 'glb';
+      const emailInput = document.getElementById('email');
+      const email = emailInput?.value.trim() || '';
 
-    try {
-      const data = await createCheckout({
-        product_id: String(currentProductId),
-      });
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (emailInput) {
+          emailInput.focus();
+          emailInput.reportValidity();
+        }
+        return;
+      }
 
-      if (data.checkout_url) {
-        window.location.href = data.checkout_url;
-      } else {
+      try {
+        const response = await fetch(`${API_URL}/api/v1/checkout/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            product_id: String(currentProductId),
+            license_tier: String(licenseTier),
+            requested_format: String(format),
+            buyer_email: email,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create checkout');
+        }
+
+        const data = await response.json();
+
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          alert('Failed to create checkout');
+        }
+      } catch (error) {
+        console.error('Checkout error:', error);
         alert('Failed to create checkout');
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Failed to create checkout');
-    }
-  });
+    });
+  }
 </script>
