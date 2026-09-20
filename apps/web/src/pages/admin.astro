@@ -134,7 +134,7 @@ const sponsorshipRows = await getSponsorshipGoals();
               
                   <!-- Simple model upload UI -->
                   <div class="mb-6 glassmorphism rounded-lg p-4">
-                    <h4 class="font-bold mb-3">Upload 3D Model (FBX / GLB / ZIP)</h4>
+                    <h4 class="font-bold mb-3">Upload 3D Model to Hugging Face Private Dataset (FBX / GLB / ZIP)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                       <div>
                         <label class="block text-sm font-medium mb-1">File</label>
@@ -145,7 +145,7 @@ const sponsorshipRows = await getSponsorshipGoals();
                         <input id="model-product-id" type="text" placeholder="existing product id" class="w-full bg-background border border-gray-700 rounded-md p-2" />
                       </div>
                       <div>
-                        <button id="upload-model-btn" class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">Upload</button>
+                        <button id="upload-model-btn" class="bg-accent-cyan hover:bg-cyan-400 text-black font-bold py-2 px-4 rounded-md transition">Upload to HF Private</button>
                       </div>
                     </div>
                     <p id="upload-status" class="mt-3 text-sm text-text-secondary"></p>
@@ -380,7 +380,6 @@ const sponsorshipRows = await getSponsorshipGoals();
   <script>
     const apiBaseUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8787';
     let currentDraft = null;
-
     const aiPrompt = document.getElementById('ai-prompt');
     const aiStatus = document.getElementById('ai-status');
     const aiResult = document.getElementById('ai-result');
@@ -542,7 +541,7 @@ const sponsorshipRows = await getSponsorshipGoals();
       });
     }
 
-    // Upload flow
+    // Upload flow (Hugging Face)
     const uploadBtn = document.getElementById('upload-model-btn');
     const fileInput = document.getElementById('model-file');
     const productIdInput = document.getElementById('model-product-id');
@@ -563,10 +562,21 @@ const sponsorshipRows = await getSponsorshipGoals();
         if (!requestResp.ok) throw new Error(data?.error || 'Failed to get upload URL');
 
         const { uploadUrl, key } = data;
-        if (uploadStatus) uploadStatus.textContent = 'Uploading file to R2...';
+        if (uploadStatus) uploadStatus.textContent = 'Uploading file to Hugging Face private dataset...';
 
-        const putResp = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
-        if (!putResp.ok) throw new Error('Upload to R2 failed');
+        // Upload directly to Hugging Face
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+        
+        const uploadResp = await fetch(`${apiBaseUrl}/api/v1/uploads/direct?key=${key}`, {
+          method: 'POST',
+          body: uploadFormData,
+        });
+        
+        if (!uploadResp.ok) {
+          const uploadError = await uploadResp.json();
+          throw new Error(uploadError?.error || 'Hugging Face private dataset upload failed');
+        }
 
         if (uploadStatus) uploadStatus.textContent = 'Finalizing upload...';
         const completeResp = await fetch(`${apiBaseUrl}/api/v1/uploads/complete`, {

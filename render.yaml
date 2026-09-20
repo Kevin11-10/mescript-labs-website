@@ -17,8 +17,8 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: cd apps/backend && npm ci && npm run render-build
-    startCommand: cd apps/backend && npm run render-start
+    buildCommand: cd apps/backend && npm ci && npm run build
+    startCommand: cd apps/backend && node dist/server.js
     envVars:
       - key: SUPABASE_URL
         secure: true
@@ -26,18 +26,13 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         secure: true
         value: ""
-      - key: HUGGINGFACE_API_KEY
+      - key: HF_TOKEN
         secure: true
         value: ""
-      - key: HUGGINGFACE_DATASET_REPO
+      - key: HF_DATASET_REPO
         value: "MescriptLabs/mescript-models"
-      - key: HUGGINGFACE_DATASET_PUBLIC_URL
-        value: "https://huggingface.co/datasets/MescriptLabs/mescript-models/resolve/main"
-      - key: HUGGINGFACE_DATASET_BASE_URL
-        value: "https://huggingface.co/datasets/MescriptLabs/mescript-models/resolve/main"
-      - key: HUGGINGFACE_PRIVATE_DATASET_URL
-        secure: true
-        value: ""
+      - key: HF_ACCESS_LEVEL
+        value: "private"
       - key: CREEM_API_KEY
         secure: true
         value: ""

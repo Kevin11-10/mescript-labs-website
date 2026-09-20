@@ -19,8 +19,8 @@ const fallbackProducts: Record<string, any> = {
     indieTeamPrice: 25.00,
     aaaStudioPrice: 50.00,
     currency: 'USD',
-    r2ModelUrl: 'https://example.com/models/sci-fi-character-pack.glb',
-    r2ModelKey: 'sci-fi-character-pack.glb',
+    hfModelUrl: 'https://example.com/models/sci-fi-character-pack.glb',
+    hfModelKey: 'sci-fi-character-pack.glb',
     formats: ['blend', 'fbx', 'obj'],
     features: [
       '5 fully rigged character models',
@@ -40,8 +40,8 @@ const fallbackProducts: Record<string, any> = {
     indieTeamPrice: 35.00,
     aaaStudioPrice: 60.00,
     currency: 'USD',
-    r2ModelUrl: 'https://example.com/models/urban-environment-set.glb',
-    r2ModelKey: 'urban-environment-set.glb',
+    hfModelUrl: 'https://example.com/models/urban-environment-set.glb',
+    hfModelKey: 'urban-environment-set.glb',
     formats: ['blend', 'fbx', 'obj'],
     features: [
       '20 modular building pieces',
@@ -64,8 +64,8 @@ const product = {
   individualPrice: Number(productData?.individualPrice ?? productData?.individual_price ?? 0),
   indieTeamPrice: Number(productData?.indieTeamPrice ?? productData?.indie_team_price ?? 0),
   aaaStudioPrice: Number(productData?.aaaStudioPrice ?? productData?.aaa_studio_price ?? 0),
-  r2ModelUrl: productData?.r2ModelUrl ?? productData?.model_url ?? productData?.sketchfabModelUid ?? productData?.sketchfab_model_uid ?? '',
-  r2ModelKey: productData?.r2ModelKey ?? productData?.r2_model_key ?? '',
+  hfModelUrl: productData?.hfModelUrl ?? productData?.model_url ?? productData?.sketchfabModelUid ?? productData?.sketchfab_model_uid ?? '',
+  hfModelKey: productData?.hfModelKey ?? productData?.r2_model_key ?? '',
   createdAt: productData?.createdAt ?? productData?.created_at ?? '2024-01-01',
   formats: productData?.formats ?? ['blend', 'fbx', 'obj'],
   features: productData?.features ?? [
@@ -97,8 +97,8 @@ const product = {
               </button>
             </div>
             <CustomModelViewer 
-              modelUrl={product.r2ModelUrl || ''}
-              modelUid={product.r2ModelKey || ''}
+              modelUrl={product.hfModelUrl || ''}
+              modelUid={product.hfModelKey || ''}
               title={product.title}
               autostart={false}
               autospin={true}
@@ -223,8 +223,8 @@ const product = {
           <div class="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900/60">
             <div class="h-[440px]">
               <CustomModelViewer 
-                modelUrl={product.r2ModelUrl || ''}
-                modelUid={product.r2ModelKey || ''}
+                modelUrl={product.hfModelUrl || ''}
+                modelUid={product.hfModelKey || ''}
                 title={product.title}
                 autostart={false}
                 autospin={true}

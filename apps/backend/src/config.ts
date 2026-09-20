@@ -20,27 +20,26 @@ export interface Env {
   AI_SERVICE_URL?: string;
   AI_SERVICE_API_KEY?: string;
   AI_MODEL?: string;
-  HUGGINGFACE_API_KEY?: string;
-  HUGGINGFACE_MODEL?: string;
-  HUGGINGFACE_DATASET_REPO?: string;
+  HF_TOKEN?: string;
+  HF_DATASET_REPO?: string;
+  HF_ACCESS_LEVEL?: string;
   HUGGINGFACE_DATASET_PUBLIC_URL?: string;
   HUGGINGFACE_DATASET_BASE_URL?: string;
   HUGGINGFACE_PRIVATE_DATASET_URL?: string;
-  HF_TOKEN?: string;
-  HF_DATASET_REPO?: string;
-  HF_DATASET_PUBLIC_URL?: string;
+  HUGGINGFACE_API_KEY?: string;
+  HUGGINGFACE_MODEL?: string;
   AI_ADMIN_APPROVAL_REQUIRED?: string;
   ADMIN_SESSION_SECRET?: string;
   ADMIN_JWT_SECRET?: string;
   ADMIN_EMAIL?: string;
   API_BASE_URL?: string;
+  MODEL_VIEWER_BASE_URL?: string;
+  IMGBB_API_KEY?: string;
   R2_ACCOUNT_ID?: string;
   R2_ACCESS_KEY_ID?: string;
   R2_SECRET_ACCESS_KEY?: string;
   R2_BUCKET_NAME?: string;
   R2_PUBLIC_URL?: string;
-  MODEL_VIEWER_BASE_URL?: string;
-  IMGBB_API_KEY?: string;
 }
 
 // CORS headers
@@ -57,12 +56,17 @@ export function validateEnv(env: Env): void {
     'GITHUB_TOKEN',
     'GITHUB_ASSET_REPO',
     'SUPABASE_URL',
-    'SUPABASE_SERVICE_ROLE_KEY'
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'HF_TOKEN',
+    'HF_DATASET_REPO'
   ];
 
-  for (const key of required) {
-    if (!env[key as keyof Env]) {
-      throw new Error(`Missing required environment variable: ${key}`);
+  const missing = required.filter(key => !env[key as keyof Env]);
+  
+  if (missing.length > 0) {
+    console.warn('Missing environment variables:', missing.join(', '));
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
   }
 }

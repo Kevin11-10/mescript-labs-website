@@ -27,7 +27,7 @@ export interface ProductRecord {
   indie_team_price: number;
   aaa_studio_price: number;
   currency: string;
-  r2_model_key?: string;
+  hf_model_key?: string;
   model_url?: string;
   sketchfab_model_uid?: string;
   github_asset_id?: string;
@@ -51,7 +51,7 @@ const FALLBACK_PRODUCTS: ProductRecord[] = [
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    r2_model_key: 'sci-fi-character-pack.glb',
+    hf_model_key: 'sci-fi-character-pack.glb',
     model_url: 'https://example.com/models/sci-fi-character-pack.glb',
   },
   {
@@ -66,7 +66,7 @@ const FALLBACK_PRODUCTS: ProductRecord[] = [
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    r2_model_key: 'urban-environment-set.glb',
+    hf_model_key: 'urban-environment-set.glb',
     model_url: 'https://example.com/models/urban-environment-set.glb',
   },
 ];
@@ -81,7 +81,7 @@ function normalizeProduct(product: any): ProductRecord {
     indie_team_price: Number(product?.indie_team_price ?? product?.indieTeamPrice ?? 0),
     aaa_studio_price: Number(product?.aaa_studio_price ?? product?.aaaStudioPrice ?? 0),
     currency: product?.currency ?? 'USD',
-    r2_model_key: product?.r2_model_key ?? product?.r2ModelKey,
+    hf_model_key: product?.hf_model_key ?? product?.r2_model_key ?? product?.r2ModelKey,
     model_url: product?.model_url ?? product?.modelUrl ?? product?.sketchfab_model_uid ?? product?.sketchfabModelUid,
     sketchfab_model_uid: product?.sketchfab_model_uid ?? product?.sketchfabModelUid,
     github_asset_id: product?.github_asset_id ?? product?.githubAssetId,

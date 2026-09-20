@@ -53,8 +53,8 @@ const products = await fetchProducts();
             <article class="catalog-card glassmorphism group overflow-hidden rounded-2xl">
               <div class="preview-shell">
                 <CustomModelViewer
-                  modelUrl={product.model_url || product.r2_model_key || ''}
-                  modelUid={product.r2_model_key || product.id}
+                  modelUrl={product.model_url || product.hf_model_key || ''}
+                  modelUid={product.hf_model_key || product.id}
                   title={product.title}
                   compact={true}
                 />
@@ -132,7 +132,7 @@ const products = await fetchProducts();
             </div>
             <div class="viewer-badge">3D</div>
             <div class="viewer-meta">
-              <span class="viewer-tag">R2</span>
+              <span class="viewer-tag">HF</span>
               <span class="viewer-title">${product.title || 'Product'}</span>
             </div>
           </div>

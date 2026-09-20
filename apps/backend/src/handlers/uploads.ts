@@ -1,4 +1,4 @@
-import { createR2Service } from '../services/r2.js';
+import { createHuggingFaceService } from '../services/huggingface.js';
 import { createSupabaseService } from '../services/supabase.js';
 import { corsHeaders, type Env } from '../config.js';
 
@@ -14,25 +14,58 @@ export async function handleUploadRequest(request: Request) {
 
     if (!filename) return jsonResponse({ error: 'filename is required' }, 400);
 
-    const r2 = createR2Service(env);
+    const hf = createHuggingFaceService(env);
 
     const now = Date.now();
     const key = `uploads/${now}-${Math.random().toString(36).slice(2, 10)}-${filename}`;
 
-    const { uploadUrl, publicUrl } = await r2.createPresignedPutUrl(key, contentType);
-
     // Store an upload record in Supabase (optional)
     try {
       const supa = createSupabaseService({ url: env.SUPABASE_URL!, serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY! });
-      await supa.getClient().from('uploads').insert([{ product_id: productId || null, r2_key: key, status: 'requested', created_at: new Date().toISOString() }]);
+      await supa.getClient().from('uploads').insert([{ 
+        product_id: productId || null, 
+        hf_key: key, 
+        status: 'requested', 
+        created_at: new Date().toISOString() 
+      }]);
     } catch (err) {
       // non-fatal
       console.warn('Failed to record upload request', err);
     }
 
+    // Return the upload endpoint info
+    const uploadUrl = `/api/v1/uploads/direct?key=${key}`;
+    const publicUrl = hf.getPublicUrl(key);
+
     return jsonResponse({ uploadUrl, key, publicUrl });
   } catch (error: any) {
     console.error('Upload request error', error);
+    return jsonResponse({ error: error?.message ?? 'unknown' }, 500);
+  }
+}
+
+export async function handleDirectUpload(request: Request) {
+  try {
+    const env: Env = (request as any).env;
+    const url = new URL(request.url);
+    const key = url.searchParams.get('key');
+    
+    if (!key) return jsonResponse({ error: 'key query param required' }, 400);
+
+    const hf = createHuggingFaceService(env);
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    
+    if (!file) return jsonResponse({ error: 'file is required' }, 400);
+
+    const arrayBuffer = await file.arrayBuffer();
+    const fileName = key.split('/').pop() || file.name;
+    
+    const result = await hf.uploadFile(fileName, arrayBuffer, `Upload ${fileName}`);
+    
+    return jsonResponse({ success: true, url: result.url, path: result.path });
+  } catch (error: any) {
+    console.error('Direct upload error', error);
     return jsonResponse({ error: error?.message ?? 'unknown' }, 500);
   }
 }
@@ -45,31 +78,35 @@ export async function handleUploadComplete(request: Request) {
 
     if (!key) return jsonResponse({ error: 'key is required' }, 400);
 
-    const r2PublicBase = env.HUGGINGFACE_DATASET_PUBLIC_URL || env.HUGGINGFACE_DATASET_BASE_URL || env.R2_PUBLIC_URL;
-    const fileUrl = r2PublicBase ? `${r2PublicBase.replace(/\/$/, '')}/${key}` : undefined;
+    const hf = createHuggingFaceService(env);
+    const fileUrl = hf.getPublicUrl(key);
 
-    // Validate existence by HEAD request
-    if (fileUrl) {
-      const headResp = await fetch(fileUrl, { method: 'HEAD' });
-      if (!headResp.ok) {
-        return jsonResponse({ error: 'Uploaded file not accessible yet' }, 400);
-      }
+    // Validate existence by checking file
+    const exists = await hf.fileExists(key);
+    if (!exists) {
+      return jsonResponse({ error: 'Uploaded file not accessible yet' }, 400);
     }
 
-    // Update product row with r2 key / url if productId provided
+    // Update product row with hf key / url if productId provided
     if (productId) {
       try {
         const supa = createSupabaseService({ url: env.SUPABASE_URL!, serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY! });
-        await supa.getClient().from('products').update({ r2_model_key: key, model_url: fileUrl }).eq('id', productId);
+        await supa.getClient().from('products').update({ 
+          r2_model_key: key, // keeping r2_model_key for backward compatibility
+          model_url: fileUrl 
+        }).eq('id', productId);
       } catch (err) {
-        console.warn('Failed to update product with R2 key', err);
+        console.warn('Failed to update product with Hugging Face key', err);
       }
     }
 
     // mark upload record completed
     try {
       const supa = createSupabaseService({ url: env.SUPABASE_URL!, serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY! });
-      await supa.getClient().from('uploads').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('r2_key', key);
+      await supa.getClient().from('uploads').update({ 
+        status: 'completed', 
+        completed_at: new Date().toISOString() 
+      }).eq('hf_key', key);
     } catch (err) {
       // non-fatal
     }
@@ -88,15 +125,12 @@ export async function handleUploadStatus(request: Request) {
     if (!key) return jsonResponse({ error: 'key query param required' }, 400);
 
     const env: Env = (request as any).env;
-    const r2PublicBase = env.HUGGINGFACE_DATASET_PUBLIC_URL || env.HUGGINGFACE_DATASET_BASE_URL || env.R2_PUBLIC_URL;
-    const fileUrl = r2PublicBase ? `${r2PublicBase.replace(/\/$/, '')}/${key}` : undefined;
+    const hf = createHuggingFaceService(env);
+    
+    const exists = await hf.fileExists(key);
+    const fileUrl = exists ? hf.getPublicUrl(key) : null;
 
-    if (fileUrl) {
-      const headResp = await fetch(fileUrl, { method: 'HEAD' });
-      return jsonResponse({ exists: headResp.ok, status: headResp.status });
-    }
-
-    return jsonResponse({ exists: false });
+    return jsonResponse({ exists, url: fileUrl });
   } catch (error: any) {
     console.error('Upload status error', error);
     return jsonResponse({ error: error?.message ?? 'unknown' }, 500);

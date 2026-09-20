@@ -12,16 +12,16 @@ if (fs.existsSync(distPath)) {
 } else {
   // Build an inline runtime using dynamic imports (no TypeScript-only syntax)
   const { Router } = await import('itty-router');
-  const { corsHeaders, validateEnv } = await import('./config.ts');
-  const { handleHealth } = await import('./handlers/health.ts');
-  const { handleCheckoutCreate } = await import('./handlers/checkout.ts');
-  const { handleProductList, handleProductById } = await import('./handlers/products.ts');
-  const { handleCreemWebhook } = await import('./handlers/webhooks.ts');
-  const { handleAssetDownload } = await import('./handlers/assets.ts');
-  const { handleUploadRequest, handleUploadComplete, handleUploadStatus } = await import('./handlers/uploads.ts');
-  const { handleMockBuy } = await import('./handlers/mock.ts');
-  const { handleAdminRepoStatus, handleAdminContentUpdate } = await import('./handlers/admin.ts');
-  const { handleAiGenerate, handleAiApprove } = await import('./handlers/ai.ts');
+  const { corsHeaders, validateEnv } = await import('./config.js');
+  const { handleHealth } = await import('./handlers/health.js');
+  const { handleCheckoutCreate } = await import('./handlers/checkout.js');
+  const { handleProductList, handleProductById } = await import('./handlers/products.js');
+  const { handleCreemWebhook } = await import('./handlers/webhooks.js');
+  const { handleAssetDownload } = await import('./handlers/assets.js');
+  const { handleUploadRequest, handleUploadComplete, handleUploadStatus, handleDirectUpload } = await import('./handlers/uploads.js');
+  const { handleMockBuy } = await import('./handlers/mock.js');
+  const { handleAdminRepoStatus, handleAdminContentUpdate } = await import('./handlers/admin.js');
+  const { handleAiGenerate, handleAiApprove } = await import('./handlers/ai.js');
 
   const router = Router();
 
@@ -33,6 +33,7 @@ if (fs.existsSync(distPath)) {
   router.post('/webhooks/creem', handleCreemWebhook);
   router.get('/api/v1/assets/download', handleAssetDownload);
   router.post('/api/v1/uploads/request', (request: Request) => handleUploadRequest(request));
+  router.post('/api/v1/uploads/direct', (request: Request) => handleDirectUpload(request));
   router.post('/api/v1/uploads/complete', (request: Request) => handleUploadComplete(request));
   router.get('/api/v1/uploads/status', (request: Request) => handleUploadStatus(request));
   router.get('/api/v1/admin/repo-status', handleAdminRepoStatus);
@@ -43,7 +44,7 @@ if (fs.existsSync(distPath)) {
   router.all('*', () => new Response('Not Found', { status: 404, headers: corsHeaders }));
 
   runtime = {
-    async fetch(request: Request, env: Record<string, any>, ctx: ExecutionContext) {
+    async fetch(request: Request, env: Record<string, any>, ctx?: any) {
       try {
         validateEnv(env);
       } catch (error) {

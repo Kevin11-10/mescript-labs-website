@@ -37,7 +37,7 @@ const resolvedModelUrl = modelUrl || (modelUid ? `https://example.com/models/${m
       </div>
       <div class="viewer-badge">3D</div>
       <div class="viewer-meta">
-        <span class="viewer-tag">R2</span>
+        <span class="viewer-tag">HF</span>
         <span class="viewer-title">{title}</span>
       </div>
       {resolvedModelUrl ? (
@@ -55,7 +55,7 @@ const resolvedModelUrl = modelUrl || (modelUid ? `https://example.com/models/${m
     <div class="viewer-empty">
       <div>
         <p class="text-xl font-bold text-accent-cyan">Model preview unavailable</p>
-        <p class="mt-2 text-sm text-text-secondary">Upload the model to Cloudflare R2 and add a public URL to the product metadata.</p>
+        <p class="mt-2 text-sm text-text-secondary">Upload the model to Hugging Face private dataset and add the URL to the product metadata.</p>
       </div>
     </div>
   )}
