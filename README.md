@@ -4,8 +4,8 @@ A comprehensive 3D asset marketplace website built with Astro frontend and Cloud
 
 ## Architecture
 
-- **Frontend**: Astro with Tailwind CSS, deployed on Cloudflare Pages
-- **Backend**: Cloudflare Workers with itty-router
+- **Frontend**: Astro with Tailwind CSS, deployed on Cloudflare Worker
+- **Backend**: Render
 - **Database**: Supabase for data persistence
 - **Payments**: Creem for payment processing
 - **Asset Storage**: Cloudflare R2 and GitHub private releases
